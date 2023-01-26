@@ -1,0 +1,14 @@
+{
+    "name": "smark",
+    "version": "1.0.0",
+    "license": "MIT",
+    "private": true,
+    "workspaces": [
+        "web",
+        "server"
+    ],
+    "scripts": {
+        "web": "yarn workspace @smark/web",
+        "server": "yarn workspace @smark/server"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "name": "Smark",
+    "description": "best bookmark management tool",
+    "version": "0.1",
+    "manifest_version": 3,
+    "omnibox": {
+        "keyword": "sm"
+    },
+    "icons": {
+        "16": "./smark.png",
+        "24": "./smark.png",
+        "32": "./smark.png"
+    },
+    "action": {
+        "default_icon": {
+            "16": "./smark.png",
+            "24": "./smark.png",
+            "32": "./smark.png"
+        },
+        "default_title": "Smark",
+        "default_popup": "./options/index.html"
+    },
+    "options_page": "./options/index.html",
+    "permissions": [
+        "unlimitedStorage",
+        "tabs",
+        "bookmarks",
+        "clipboardRead",
+        "clipboardWrite",
+        "contextMenus"
+    ],
+    "content_security_policy": {
+        "script-src": "self",
+        "object-src": "none"
+    }
+}
