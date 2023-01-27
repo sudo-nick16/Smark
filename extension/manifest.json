@@ -22,6 +22,7 @@
     },
     "options_page": "./options/index.html",
     "permissions": [
+        "storage",
         "unlimitedStorage",
         "tabs",
         "bookmarks",

@@ -1,0 +1,14 @@
+{
+    "name": "@smark/extension",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch"
+    },
+    "dependencies": {
+        "@types/chrome": "^0.0.210",
+        "typescript": "^4.9.4"
+    }
+}

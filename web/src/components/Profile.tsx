@@ -5,7 +5,7 @@ type ProfileProps = {}
 
 const Profile: React.FC<ProfileProps> = () => {
     return (
-        <div className='flex items-center w-full mt-auto mb-4 hover:bg-dark-gray p-2 rounded-full'>
+        <div className='flex items-center w-full mt-auto hover:bg-dark-gray p-2 rounded-full'>
             <div className='w-fit mr-3'>
                 <img className='h-10 w-10' src="https://sudonick.vercel.app/sudonick.svg" alt="profile" />
             </div>

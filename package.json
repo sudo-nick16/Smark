@@ -5,10 +5,11 @@
     "private": true,
     "workspaces": [
         "web",
+        "extension",
         "server"
     ],
     "scripts": {
         "web": "yarn workspace @smark/web",
-        "server": "yarn workspace @smark/server"
+        "extension": "yarn workspace @smark/extension"
     }
 }

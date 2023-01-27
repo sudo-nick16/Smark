@@ -25,10 +25,10 @@ function App() {
         <div className="mx-auto h-full">
             <div className="h-full grid grid-cols-4 text-white font-white w-full">
                 <Navbar />
-                <div className="border-l border-r border-dark-gray col-span-2">
+                <div className="border-l border-r border-dark-gray col-span-2 h-full">
                     <UrlGrid />
                 </div>
-                <div className="p-3">
+                <div className="p-3 max-w-[300px]">
                     <Search {...{searchRef}}/>
                 </div>
             </div>

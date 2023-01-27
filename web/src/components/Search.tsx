@@ -7,7 +7,7 @@ type SearchProps = {
 const Search: React.FC<SearchProps> = ({ searchRef }) => {
     const cmdMap = {
         su: "search urls in the current list",
-        sa: "search urls in all the list",
+        sa: "search urls in all the lists",
         sl: "search lists",
         du: "delete urls",
         dl: "delete lists",
@@ -43,9 +43,16 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                 {
                     // @ts-ignore
                     Object.keys(cmdMap).map((k: keyof typeof cmdMap, i: number) =>
-                        <div className='px-3 w-full max-w-full grid grid-cols-6 my-1' key={i}>
-                            <span className='bg-md-gray w-8 text-center rounded-md h-fit bg-opacity-30'>/{k}</span>
-                            <span className='col-span-5 truncate w-fit max-w-full'>{cmdMap[k]}</span>
+                        <div
+                            className='px-3 w-full max-w-full grid grid-cols-6 my-1'
+                            key={i}
+                        >
+                            <span className='bg-md-gray w-8 text-center rounded-md h-fit bg-opacity-30'>
+                                /{k}
+                            </span>
+                            <span className='col-span-5 truncate w-fit max-w-full'>
+                                {cmdMap[k]}
+                            </span>
                         </div>
                     )
                 }
