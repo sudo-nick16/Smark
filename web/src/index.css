@@ -27,19 +27,18 @@
     box-shadow: rgb(255 255 255 / 20%) 0px 0px 9px, rgb(255 255 255 / 15%) 0px 0px 3px 1px;
 }
 
-/* scrollbar  */
-*::-webkit-scrollbar {
-  width: 0px;
-}
  
-/* *::-webkit-scrollbar-track { */
-/*     background: red; */
-/* } */
-/*   */
-/* *::-webkit-scrollbar-thumb { */
-/*   border-radius: 100px; */
-/*   background: white; */
-/* } */
+*::-webkit-scrollbar {
+    width: 5px;
+}  
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #1d1d1d;
+}  
 
 body {
   margin: 0;

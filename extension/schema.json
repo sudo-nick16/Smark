@@ -1,0 +1,59 @@
+{
+    "type": "object",
+    "properties": {
+        "AutoSync": {
+            "type": "boolean"
+        },
+        "PollRefreshRate": {
+            "type": "integer"
+        },
+        "DefaultServiceUrl": {
+            "type": "string"
+        },
+        "User": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "SyncStatus": {
+            "type": "string"
+        },
+        "BookMark": {
+            "type": "object",
+            "id": "BookMark",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "selected": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "BookMarkList": {
+            "type": "array", 
+            "id": "BookMarkList",
+            "items": {
+                "$ref": "BookMark"
+            }
+        },
+        "BookMarks": {
+            "type": "array",
+            "items": {
+                "$ref": "BookMarkList"
+            }
+        }
+    }
+}

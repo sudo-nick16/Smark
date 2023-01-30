@@ -1,4 +1,6 @@
+import { useAtom } from 'jotai';
 import React, { useState } from 'react'
+import { searchQueryAtom, searchTypeAtom } from '../state';
 
 type SearchProps = {
     searchRef: React.MutableRefObject<HTMLInputElement | undefined>;
@@ -9,12 +11,14 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
         su: "search urls in the current list",
         sa: "search urls in all the lists",
         sl: "search lists",
+        cu: "create url",
+        cl: "create list",
         du: "delete urls",
         dl: "delete lists",
     };
 
-    const [searchType, setSearchType] = useState("su");
-    const [searchString, setSearchString] = useState("");
+    const [searchType, setSearchType] = useAtom(searchTypeAtom);
+    const [searchString, setSearchString] = useAtom(searchQueryAtom);
 
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const str = event.target.value.trimStart();

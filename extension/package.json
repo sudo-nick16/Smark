@@ -4,7 +4,7 @@
     "main": "dist/index.js",
     "license": "MIT",
     "scripts": {
-        "build": "tsc",
+        "build": "yarn web build && tsc",
         "watch": "tsc --watch"
     },
     "dependencies": {

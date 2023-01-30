@@ -32,14 +32,14 @@ const ContextMenu = ({
                 top: xy.y,
                 left: xy.x,
             }}
-            className={`fixed z-10 flex flex-col bg-dark-gray p-1 rounded-lg`}
+            className={`fixed z-30 flex flex-col bg-black s-shadow p-1 rounded-lg`}
         >
             {
                 menuItems.map((k, i) =>
                     <div
                         key={k.name + i}
                         onClick={k.handler}
-                        className='select-none hover:bg-md-gray hover:bg-opacity-10 px-2 rounded-lg cursor-pointer'
+                        className='select-none hover:bg-dark-gray px-2 rounded-lg cursor-pointer'
                     >
                         {k.name}
                     </div>
