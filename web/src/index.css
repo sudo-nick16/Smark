@@ -2,14 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Nunito Sans', sans-serif;
+html{
+  background-color: #000000;
+}
+
+#root {
+  font-family: 'Nunito Sans', sans-serif !important;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
   margin: 0 auto !important;
 
-  color-scheme: light dark;
   background-color: #000000;
 
   font-synthesis: none;
@@ -17,10 +20,6 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-}
-
-#root {
-  margin: 0 auto !important;
 }
 
 .s-shadow {

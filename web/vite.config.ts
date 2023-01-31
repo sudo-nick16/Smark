@@ -7,6 +7,12 @@ export default defineConfig({
     build: {
         outDir: '../extension/options',
         emptyOutDir: true,
+        watch: {
+            buildDelay: 0,
+            clearScreen: true,
+            skipWrite: false,
+            include: ['src/**', 'src/*.ts', 'src/**/*.ts', 'src/**/*.tsx'], 
+        }
     },
     base: ""
 })
