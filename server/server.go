@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sudo-nick16/smark/server/oauth"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,7 @@ import (
 	"github.com/sudo-nick16/smark/server/graph"
 )
 
-const defaultPort = "8080"
+const defaultPort = "42069"
 
 func main() {
 	port := os.Getenv("PORT")
@@ -22,9 +23,8 @@ func main() {
 
 	srv := handler.NewDefaultServer(schema)
 
-	http.Handle("/nikit", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("Hello Friend"));
-	}))
+	http.HandleFunc("/auth/google/login", oauth.OauthGoogleLogin)
+	http.HandleFunc("/auth/google/callback", oauth.OauthGoogleCallback)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

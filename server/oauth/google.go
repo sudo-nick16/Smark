@@ -15,18 +15,6 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-type oauth struct {
-}
-
-type GoogleToken struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	IdToken     string `json:"id_token"`
-	RefresToken string `json:"refresh_token"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
-}
-
 var googleOauthConfig = &oauth2.Config{
 	RedirectURL:  "",
 	ClientID:     os.Getenv("GOOGLE_OAUTH_CLIENT_ID"),
@@ -37,14 +25,14 @@ var googleOauthConfig = &oauth2.Config{
 
 const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 
-func oauthGoogleLogin(w http.ResponseWriter, r *http.Request) {
+func OauthGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	oauthState := generateStateOauthCookie(w)
 
 	u := googleOauthConfig.AuthCodeURL(oauthState)
 	http.Redirect(w, r, u, http.StatusTemporaryRedirect)
 }
 
-func oauthGoogleCallback(w http.ResponseWriter, r *http.Request) {
+func OauthGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	oauthState, _ := r.Cookie("oauthstate")
 
 	if r.FormValue("state") != oauthState.Value {

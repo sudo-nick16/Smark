@@ -7,40 +7,44 @@ import { bookmarksAtom } from "./state";
 
 function App() {
     const searchRef = useRef<HTMLInputElement>();
-    console.log("app")
+    const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
 
-    const [_, setBookmarks] = useAtom(bookmarksAtom);
+    console.log("app")
 
     useEffect(() => {
         const addStateUpdateListener = (key: string) => {
+            if (typeof chrome.storage === "undefined") {
+                console.log("This is web.");
+                return;
+            }
+            console.log("This is extension.");
             chrome.storage.onChanged.addListener((changes, namespace) => {
-                console.log(changes, namespace)
-                console.log("added something new so updating..")
-                console.log(Object.keys(changes));
+                console.log("Changes detected: ", changes)
                 for (let k of Object.keys(changes)) {
-                    console.log(k);
+                    console.log("Key :", k, "Desired :", key);
                     if (k === key) {
-                        console.log(changes[key].newValue)
-                        // setBookmarks(changes[key].newValue);
-                        setBookmarks([]);
-                        console.log("emptying")
+                        console.log(bookmarks === changes[key].newValue)
+                        const data = changes[key].newValue;
+                        console.log("New Value to be set: ", data);
+                        setBookmarks(bookmarks);
                         break;
                     }
                 }
             })
         }
-        setBookmarks([]);
-        console.log("emptying"); 
-        addStateUpdateListener("bookmarks"); 
-        addStateUpdateListener("polling"); 
+
+        const getInitialValue = async () => {
+            console.log("Initial Data on load: ", bookmarks);
+        }
+        getInitialValue();
+
+        addStateUpdateListener("bookmarks");
 
         const cmdListener = (e: KeyboardEvent) => {
             if (e.key === "/") {
                 searchRef.current?.focus();
             }
         }
-
-        // addStateUpdateListener("bookmarks", setBookmarks);
 
         window.addEventListener("keyup", cmdListener);
 
@@ -52,11 +56,11 @@ function App() {
 
     return (
         <Provider>
-            <div className="mx-auto h-full w-7xl max-w-7xl">
+            <div className="h-full w-[95%] lg:max-w-[1100px] overflow-x-hidden">
                 <div className="h-full grid grid-cols-4 text-white font-white w-full">
                     <Navbar />
-                    <div className="border-l w-full border-r border-dark-gray col-span-2 h-full">
-                        <UrlList />
+                    <div className="border-l border-r border-dark-gray col-span-2 h-full">
+                        <UrlList className="col-span-2 h-full" />
                     </div>
                     <div className="p-3 max-w-[300px]">
                         <Search {...{ searchRef }} />

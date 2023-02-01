@@ -1,88 +1,89 @@
-import { Atom, atom, useAtom, WritableAtom } from "jotai";
-import { Bookmark, Bookmarks } from "../types";
+import { atom } from "jotai";
+import { Bookmarks } from "../types";
+import { AsyncStorage } from "../utils/storage";
 
-const getInitialValue = async (): Promise<Bookmarks> => {
-    const getData = async (key: string) => {
-        return await chrome.storage.local.get([key]);
-    }
-    const data = (await getData("bookmarks"))["bookmarks"];
-    console.log("state data", data);
-    return data as Bookmarks;
-}
-
-export const atomWithAsyncStorage = (key: string, initialValue: Bookmarks = []) => {
-    const baseAtom = atom(initialValue)
+export const atomWithAsyncStorage = <T>(key: string, initialValue: T, storage: AsyncStorage<T>) => {
+    const baseAtom = atom(initialValue);
     baseAtom.onMount = (setValue) => {
         ; (async () => {
-            const item = (await chrome.storage.local.get([key]))[key];
-            setValue(item)
+            const item = await storage.getItem(key);
+            console.log("item from storage.local: ", item);
+            setValue(item!);
         })()
     }
     const derivedAtom = atom(
-        (get) => get(baseAtom),
-        (get, set, update) => {
-            console.log("set bookmarkAtom called");
-            const nextValue: Bookmarks =
-                typeof update === 'function' ? update(get(baseAtom)) : update
-            console.log(nextValue, "new value ig");
-            set(baseAtom, nextValue)
-            chrome.storage.local.set({ key: nextValue }, () => {
-                chrome.storage.local.get([key], (data) => {
-                    console.log("inside set atom", data);
-                })
-            })
+        (get) => { console.log("get(baseAtom)", get(baseAtom)); return get(baseAtom) },
+        async (get, set, update) => {
+            const nextValue: T = typeof update === 'function' ? update(get(baseAtom)) : update;
+            console.log("Set Async Atom", nextValue);
+            set(baseAtom, nextValue);
+            await storage.setItem(key, nextValue);
+            console.log("Base Atom after update: ", get(baseAtom));
         }
     )
     return derivedAtom
 }
 
-// const createPersistAtom = (anAtom: WritableAtom, key: string) => atom(
-//     (get) => get(anAtom),
-//     async (get, set, action: { payload?: Bookmarks, type: string }) => {
-//         if (action.type === 'load') {
-//             const data = (await chrome.storage.local.get([key]))[key]
-//             set(anAtom, data)
-//         } else if (action.type === 'save') {
-//             const data = get(anAtom)
-//             await chrome.storage.local.set({ key: data })
-//         }
-//     },
-// )
+const storageKey = "myAtomKey";
 
-export const bookmarksAtom = atomWithAsyncStorage("bookmarks", []);
-// const bookmarkState = atom<Bookmarks>([]);
-// export const bookmarksAtom = createPersistAtom(bookmarkState, "bookmarks");
+export const bookmarksAtom = atom({
+    key: storageKey,
+    default: null,
+    persistence_UNSTABLE: {
+        get: async () => {
+            return new Promise((resolve, reject) => {
+                chrome.storage.local.get([storageKey], result => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve(result[storageKey]);
+                    }
+                });
+            });
+        },
+        set: async (val) => {
+            return new Promise((resolve, reject) => {
+                chrome.storage.local.set({ [storageKey]: val }, () => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve(val);
+                    }
+                });
+            });
+        }
+    }
+});
 
-// export const bookmarksAtomStrong = atom(
-//     (get) => get(bookmarksAtom),
-//     async (get, set, bookmarks: Bookmarks) => {
-//         try {
-//             await chrome.storage.local.set({
-//                 bookmarks: bookmarks
-//             })
-//             return set(bookmarksAtom, bookmarks);
-//         } catch (e) {
-//             console.log(e)
-//         }
-//     }
-// )
+// export const bookmarks = myAtomWithStorage<Bookmarks>("bookmarks", []);
+
+// export const bookmarksAtom = atomWithStorageAuto<Bookmarks>("bookmarks", []);
+
+const storage = new AsyncStorage<Bookmarks>();
+
+export const bookmarksState = atomWithAsyncStorage<Bookmarks>("bookmarks", [], storage);
+
+// export const bookmarksAtom = atom(
+//     (get) => get(bookmarksState),
+//     (get, set, update) => {
+//         set(bookmarksState, update);
+//     })
 
 export const searchTypeAtom = atom("sa");
+
 export const searchQueryAtom = atom("");
+ 
 export const selectionActiveAtom = atom(false);
+
 export const currentListAtom = atom(
-    (get) => get(bookmarksAtom).find(e => e.selected)?.title,
+    (get) => get(bookmarksAtom).persistence_UNSTABLE.get().find(e => e.selected)?.title,
     (get, set, title: string) => {
-        // const [_, writeB] = useAtom(bookmarksAtom);
-        // writeB((b) => b.map(c => { c.selected = c.title === "title"; return c }));
-        // console.log("updated");
         set(bookmarksAtom, get(bookmarksAtom).map(e => ({ ...e, selected: e.title == title })));
     });
 
 export const openedSectionAtom = atom(
     (get) => get(currentListAtom),
     (get, set, title: string) => {
-        // console.log("updated");
         set(bookmarksAtom, get(bookmarksAtom).map(e => ({ ...e, title: e.selected ? title : e.title })));
     });
 

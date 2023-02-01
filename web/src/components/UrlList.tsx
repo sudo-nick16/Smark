@@ -7,7 +7,9 @@ import edit from "../assets/edit.png";
 import share from "../assets/send.png";
 import { Bookmark } from '../types';
 
-type UrlListProps = {}
+type UrlListProps = {
+    className?: string
+}
 
 const Head = ({ name }: { name: string }) => {
     const [openedSection, setOpenedSection] = useAtom(openedSectionAtom);
@@ -91,45 +93,43 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url } }) =
     return (
         <div
             onContextMenu={(e) => showContextMenu(e)}
-            className='flex items-center px-3 py-3 border-b border-b-dark-gray hover:bg-dark-gray w-full'
+            draggable
+            className='flex flex-row items-center px-3 py-3 border-b border-b-dark-gray hover:bg-dark-gray w-full'
         >
-            {
-                selectionActive && <div
-                    onClick={() => setSelected(!selected)}
-                    className={`${selected ? "bg-blue-500" : "bg-dark-gray"} 
-                                border-2 border-dark-gray s-shadow rounded w-4 h-4 mr-3 cursor-pointer`}
-                > </div>
-            }
-            <div className='flex items-center justify-center mr-3'>
-                <img src={icon} alt="title" className='w-6 h-6' />
+            <div className='flex items-center justify-center w-6 min-w-[1.5rem] h-6 min-h-[1.5rem]'>
+                <img src={icon} alt="title" className='w-full h-full' />
             </div>
-            <div className='w-full flex flex-col'>
-                <div className='font-semibold' contentEditable suppressContentEditableWarning>{title}</div>
+            <div className='flex flex-col w-full overflow-x-clip pl-3'>
+                <p className='font-semibold break-words w-fit max-w-[95%] line-clamp-2' contentEditable suppressContentEditableWarning>{title}</p>
                 <a
                     target={"_blank"}
                     href={url}
-                    className='w-3/4 max-w-full text-md-gray opacity-40 font-semibold text-sm underline truncate'
+                    className='w-3/4 text-md-gray opacity-40 font-semibold text-sm underline truncate'
                 >{url}</a>
             </div>
             {
                 show && <ContextMenu {...{ setShow, xy, menuItems }} />
+            }
+            {
+                false && <div
+                    onClick={() => setSelected(!selected)}
+                    className={`${selected ? "bg-blue-500" : "bg-dark-gray"} 
+                                border-2 border-dark-gray s-shadow w-3 h-3 rounded-full mr-3 cursor-pointer`}
+                ></div>
             }
         </div>
     )
 }
 
 
-const UrlList: React.FC<UrlListProps> = () => {
-    const urls = ['Figma', 'Chrome', 'Whatsapp is a good app ig. therefore thy shall go', 'Youtube', 'Extensions', 'Facebook', 'Twitter', 'Instagram']
-    for (let i = 0; i < 3; ++i) {
-        urls.push(...urls);
-    }
+const UrlList: React.FC<UrlListProps> = ({ className = "" }) => {
     const [urllist, setUrllist] = useAtom(urllistAtom);
+
     console.log("urrlist: ", urllist);
     return (
-        <div className='w-full relative h-screen flex flex-col'>
+        <div className={`${className} w-full relative h-screen flex flex-col`}>
             <Head name="Home" />
-            <div className='h-full overflow-y-auto' id="urllist-container">
+            <div className='h-full overflow-y-auto w-full flex flex-col' id="urllist-container">
                 {
                     urllist && urllist.map((e, i) =>
                         <ListItem bookmark={e} key={i} />
