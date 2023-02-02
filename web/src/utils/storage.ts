@@ -1,3 +1,4 @@
+import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
 export class AsyncStorage<T> {
@@ -5,7 +6,7 @@ export class AsyncStorage<T> {
         console.log("accessing chrome.local");
         try {
             const data = (await chrome.storage.local.get(key))[key];
-            console.log("accessed ", key,"got data", data)
+            console.log("accessed ", key, "got data", data)
             return data;
         } catch (e) {
             console.log(e);
@@ -29,45 +30,34 @@ export class AsyncStorage<T> {
     }
 }
 
-class LocalStorage {
-    getItem = async <T>(key: string): Promise<T> => {
-        console.log("accessing localStorage");
-        try {
-            const data = localStorage.getItem(key);
-            if (!data) {
-                return null as any;
-            }
-            return JSON.parse(data) as T;
-        } catch (e) {
-            console.log(e);
-            return null as any;
-        }
+const atomWithAsyncStorage = <T>(key: string, initialValue: T, storage: AsyncStorage<T>) => {
+    const baseAtom = atom(initialValue)
+    baseAtom.onMount = (setValue) => {
+        ; (async () => {
+            const item = await storage.getItem(key)
+            // @ts-ignore
+            setValue(item);
+        })()
     }
-    setItem = <T>(key: string, payload: T): void => {
-        console.log("writing to localStorage");
-        try {
-            localStorage.setItem(key, JSON.stringify(payload));
-        } catch (e) {
-            console.log(e);
-        }
-    }
-    removeItem = (key: string): void => {
-        console.log("writing to localStorage");
-        try {
-            localStorage.setItem(key, "");
-        } catch (e) {
-            console.log(e);
-        }
-    }
+    const derivedAtom = atom(
+        (get) => get(baseAtom),
+        (get, set, update) => {
+            const nextValue =
+                typeof update === 'function' ? update(get(baseAtom)) : update
+            set(baseAtom, nextValue)
+            storage.setItem(key, nextValue);
+        },
+
+    )
+    return derivedAtom
 }
 
-export const atomWithStorageAuto = <T>(key: string, initialValue: T) => {
-    let storage;
+export const myAtomWithStorage = <T>(key: string, initialValue: T) => {
     if (typeof chrome.storage === "undefined") {
-        storage = createJSONStorage<T>(() => new AsyncStorage());
-    } else {
-        storage = createJSONStorage<T>(() => localStorage);
+        console.log("This is web")
+        return atomWithStorage<T>(key, initialValue, createJSONStorage(() => localStorage));
     }
+    console.log("This is an extension")
     // @ts-ignore
-    return atomWithStorage<T>(key, initialValue, storage);
+    return atomWithAsyncStorage(key, initialValue, new AsyncStorage<T>())
 };

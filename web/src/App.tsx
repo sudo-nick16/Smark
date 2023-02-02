@@ -1,5 +1,5 @@
 import { Provider, useAtom } from "jotai";
-import { useEffect, useRef } from "react"
+import { Suspense, useEffect, useRef } from "react"
 import Navbar from "./components/Navbar"
 import Search from "./components/Search"
 import UrlList from "./components/UrlList"
@@ -8,6 +8,7 @@ import { bookmarksAtom } from "./state";
 function App() {
     const searchRef = useRef<HTMLInputElement>();
     const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
+    console.log(bookmarks, "bookmarks -- ")
 
     console.log("app")
 
@@ -23,20 +24,19 @@ function App() {
                 for (let k of Object.keys(changes)) {
                     console.log("Key :", k, "Desired :", key);
                     if (k === key) {
-                        console.log(bookmarks === changes[key].newValue)
                         const data = changes[key].newValue;
                         console.log("New Value to be set: ", data);
-                        setBookmarks(bookmarks);
+                        setBookmarks(data);
                         break;
                     }
                 }
             })
         }
 
-        const getInitialValue = async () => {
-            console.log("Initial Data on load: ", bookmarks);
-        }
-        getInitialValue();
+        // const getInitialValue = async () => {
+        //     console.log("Initial Data on load: ", bookmarks);
+        // }
+        // getInitialValue();
 
         addStateUpdateListener("bookmarks");
 
@@ -55,7 +55,7 @@ function App() {
     }, [])
 
     return (
-        <Provider>
+        <Suspense>
             <div className="h-full w-[95%] lg:max-w-[1100px] overflow-x-hidden">
                 <div className="h-full grid grid-cols-4 text-white font-white w-full">
                     <Navbar />
@@ -67,7 +67,7 @@ function App() {
                     </div>
                 </div>
             </div>
-        </Provider>
+        </Suspense>
     )
 }
 

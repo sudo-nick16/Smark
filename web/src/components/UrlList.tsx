@@ -1,11 +1,12 @@
 import { useAtom } from 'jotai'
-import React, { useRef, useState } from 'react'
-import { openedSectionAtom, selectionActiveAtom, urllistAtom } from '../state'
+import React, { Suspense, useRef, useState } from 'react'
+import { bookmarksAtom, openedSectionAtom, selectionActiveAtom, urllistAtom } from '../state'
 import ContextMenu from './ContextMenu'
 import bin from "../assets/bin.png";
 import edit from "../assets/edit.png";
 import share from "../assets/send.png";
 import { Bookmark } from '../types';
+import OutsideClickWrapper from './OutsideClickWrapper';
 
 type UrlListProps = {
     className?: string
@@ -29,9 +30,12 @@ const Head = ({ name }: { name: string }) => {
     }
     return (
         <div className='w-full py-4 px-4 flex items-center justify-between border-b border-dark-gray'>
-            <p
+            <OutsideClickWrapper
+                as={"p"}
+                onOutsideClick={() => setEditList(false)}
+                listenerState={editList}
                 className='font-bold text-xl px-2'
-                ref={openedSectionRef}
+                refs={[openedSectionRef]}
                 contentEditable={editList}
                 suppressContentEditableWarning
                 suppressHydrationWarning
@@ -44,7 +48,7 @@ const Head = ({ name }: { name: string }) => {
                 }}
             >
                 {openedSection}
-            </p>
+            </OutsideClickWrapper>
             <div className='bg-dark-gray flex items-center px-2 py-1 rounded-lg'>
                 <div onClick={deleteHandler} className='hover:bg-[#4E4E4E] py-1 rounded-md cursor-pointer'>
                     <img src={bin} alt="delete" className='h-4 w-4 mx-2' />
@@ -62,11 +66,15 @@ const Head = ({ name }: { name: string }) => {
 
 type ListItemProps = {
     bookmark: Bookmark
+    index: number
 }
 
-const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url } }) => {
+const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url }, index }) => {
     const [selected, setSelected] = useState(false);
+    const [, setBookmarks] = useAtom(bookmarksAtom);
     const [show, setShow] = useState(false);
+    const editRef = useRef<HTMLParagraphElement>();
+    const [edit, setEdit] = useState(false);
     const [xy, setXY] = useState({
         x: 0,
         y: 0,
@@ -80,13 +88,44 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url } }) =
     const menuItems = [
         {
             name: "Delete",
-            handler: () => { },
+            handler: () => {
+                setBookmarks((bm) => bm.map(b => {
+                    if (b.selected) {
+                        b.children.splice(index, 1);
+                    }
+                    return b;
+                }))
+                setShow(false);
+            },
         },
         {
             name: "Edit",
-            handler: () => { },
+            handler: () => {
+                setEdit(true);
+                setTimeout(() => {
+                    editRef.current!.focus();
+                    window.getSelection()?.selectAllChildren(editRef.current!);
+                    window.getSelection()?.collapseToEnd();
+                }, 0)
+                setShow(false);
+            },
         },
     ]
+
+    const handleTitleBlur = () => {
+        setBookmarks((bm) => bm.map((b) => {
+            if (b.selected) {
+                b.children = b.children.map(l => {
+                    if (l.url === url) {
+                        l.title = editRef.current?.innerText || l.title;
+                    }
+                    return l
+                })
+            }
+            return b;
+        }));
+        setEdit(false)
+    }
 
     const [selectionActive, setSelectionActive] = useAtom(selectionActiveAtom);
 
@@ -100,11 +139,26 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url } }) =
                 <img src={icon} alt="title" className='w-full h-full' />
             </div>
             <div className='flex flex-col w-full overflow-x-clip pl-3'>
-                <p className='font-semibold break-words w-fit max-w-[95%] line-clamp-2' contentEditable suppressContentEditableWarning>{title}</p>
+                <OutsideClickWrapper
+                    as={"p"}
+                    onOutsideClick={handleTitleBlur}
+                    refs={[editRef]}
+                    listenerState={edit}
+                    className={`${edit && "pr-1"} font-semibold break-words w-fit max-w-[95%] line-clamp-2`}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            // setOpenedSection(e.currentTarget.innerText);
+                            handleTitleBlur();
+                        }
+                    }}
+                    contentEditable={edit}
+                    suppressContentEditableWarning>
+                    {title}
+                </OutsideClickWrapper>
                 <a
                     target={"_blank"}
                     href={url}
-                    className='w-3/4 text-md-gray opacity-40 font-semibold text-sm underline truncate'
+                    className='max-w-[90%] w-fit text-md-gray opacity-40 font-semibold text-sm underline truncate'
                 >{url}</a>
             </div>
             {
@@ -117,26 +171,28 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url } }) =
                                 border-2 border-dark-gray s-shadow w-3 h-3 rounded-full mr-3 cursor-pointer`}
                 ></div>
             }
-        </div>
+        </div >
     )
 }
 
 
 const UrlList: React.FC<UrlListProps> = ({ className = "" }) => {
     const [urllist, setUrllist] = useAtom(urllistAtom);
-
     console.log("urrlist: ", urllist);
+
     return (
-        <div className={`${className} w-full relative h-screen flex flex-col`}>
-            <Head name="Home" />
-            <div className='h-full overflow-y-auto w-full flex flex-col' id="urllist-container">
-                {
-                    urllist && urllist.map((e, i) =>
-                        <ListItem bookmark={e} key={i} />
-                    )
-                }
+        <Suspense>
+            <div className={`${className} w-full relative h-screen flex flex-col`}>
+                <Head name="Home" />
+                <div className='h-full overflow-y-auto w-full flex flex-col' id="urllist-container">
+                    {
+                        urllist && urllist.map((e, i) =>
+                            <ListItem index={i} bookmark={e} key={i} />
+                        )
+                    }
+                </div>
             </div>
-        </div>
+        </Suspense>
     )
 }
 
