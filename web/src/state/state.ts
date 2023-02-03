@@ -26,4 +26,5 @@ export const openedSectionAtom = currentListAtom;
 // }
 // );
 
+export const showAuthModalAtom = atom(true);
 export const urllistAtom = atom((get) => get(bookmarksAtom).find(e => e.title === get(currentListAtom))?.children);

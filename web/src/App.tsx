@@ -1,16 +1,32 @@
-import { Provider, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import { Suspense, useEffect, useRef } from "react"
 import Navbar from "./components/Navbar"
 import Search from "./components/Search"
 import UrlList from "./components/UrlList"
 import { bookmarksAtom } from "./state";
 
+type AO = {
+    children: []
+}[]
+
+function areSame(ob: AO, ob2: AO): boolean {
+    if (ob.length === ob2.length) {
+        for (let i = 0; i < ob.length; ++i) {
+            if (ob[i].children.length !== ob2[i].children.length) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 function App() {
     const searchRef = useRef<HTMLInputElement>();
     const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
-    console.log(bookmarks, "bookmarks -- ")
+    console.log(bookmarks, "bookmarks -- ");
 
-    console.log("app")
+    console.log("app");
 
     useEffect(() => {
         const addStateUpdateListener = (key: string) => {
@@ -24,19 +40,17 @@ function App() {
                 for (let k of Object.keys(changes)) {
                     console.log("Key :", k, "Desired :", key);
                     if (k === key) {
-                        const data = changes[key].newValue;
-                        console.log("New Value to be set: ", data);
-                        setBookmarks(data);
+                        if (areSame(changes[key].newValue, changes[key].oldValue)) {
+                            console.log("No addition or removal of list or urls");
+                            return;
+                        }
+                        console.log("New Value to be set: ", changes[key].newValue);
+                        setBookmarks(changes[key].newValue);
                         break;
                     }
                 }
             })
         }
-
-        // const getInitialValue = async () => {
-        //     console.log("Initial Data on load: ", bookmarks);
-        // }
-        // getInitialValue();
 
         addStateUpdateListener("bookmarks");
 

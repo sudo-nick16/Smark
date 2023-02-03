@@ -11,7 +11,7 @@ export default defineConfig({
             buildDelay: 0,
             clearScreen: true,
             skipWrite: false,
-            include: ['src/**', 'src/*.ts', 'src/**/*.ts', 'src/**/*.tsx'], 
+            include: ['src/*.ts', 'src/**/*.ts', 'src/**/*.tsx'], 
         }
     },
     base: ""
