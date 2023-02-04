@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react'
 
-type OutsideClickWrapper = React.DOMAttributes<HTMLDivElement> & {
+type OutsideClickWrapper = React.DOMAttributes<HTMLElement> & React.AllHTMLAttributes<HTMLElement> & {
     onOutsideClick: () => void;
-    as: keyof JSX.IntrinsicElements;
-    refs: React.MutableRefObject<HTMLElement | undefined>[];
-    listenerState: boolean
+    as?: keyof JSX.IntrinsicElements;
+    refs?: React.MutableRefObject<HTMLElement | undefined>[];
+    listenerState?: boolean
 }
 
-const OutsideClickWrapper: React.FC<OutsideClickWrapper> = ({ onOutsideClick, as: Tag, refs = [], listenerState = true, ...props }) => {
+const OutsideClickWrapper: React.FC<OutsideClickWrapper> = ({ onOutsideClick, as: Tag = "div", refs = [], listenerState = true, ...props }) => {
     const ref = useRef<HTMLDivElement>();
     useEffect(() => {
         if (!listenerState) {
