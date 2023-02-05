@@ -1,39 +1,45 @@
-import React, { useEffect, useRef } from 'react'
+import React, { forwardRef, useEffect, useRef } from 'react'
 
-type OutsideClickWrapper = React.DOMAttributes<HTMLElement> & React.AllHTMLAttributes<HTMLElement> & {
-    onOutsideClick: () => void;
+type OutsideClickWrapperProps = React.DOMAttributes<HTMLElement> & React.AllHTMLAttributes<HTMLElement> & {
+    onOutsideClick: (...args: [MouseEvent, ...any]) => void;
     as?: keyof JSX.IntrinsicElements;
-    refs?: React.MutableRefObject<HTMLElement | undefined>[];
     listenerState?: boolean
 }
 
-const OutsideClickWrapper: React.FC<OutsideClickWrapper> = ({ onOutsideClick, as: Tag = "div", refs = [], listenerState = true, ...props }) => {
-    const ref = useRef<HTMLDivElement>();
+type Ref = HTMLElement;
+
+const OutsideClickWrapper = forwardRef<Ref, OutsideClickWrapperProps>((props, compRef) => {
+    const { onOutsideClick, as: Tag = "div", listenerState = true, children, ...rest } = props;
+    const ref = useRef<HTMLElement>(null);
     useEffect(() => {
         if (!listenerState) {
             return;
         }
         const handleOutsideClick = (e: MouseEvent) => {
             if (e.target != ref.current && !ref.current?.contains(e.target as Node)) {
-                console.log("clicked outside..", ref.current);
-                onOutsideClick();
+                onOutsideClick(e);
             }
         }
         window.addEventListener("mousedown", handleOutsideClick);
-        console.log("outside click listener added.")
         return () => {
             window.removeEventListener("mousedown", handleOutsideClick);
-            console.log("outside click listener removed.")
         }
     }, [listenerState])
     return (
         // @ts-ignore
         <Tag
+            {...rest}
             // @ts-ignore
-            ref={(e: HTMLElement) => { ref.current = e; refs.forEach((r) => r.current = e) }}
-            {...props}
-        > {props.children} </Tag>
+            ref={(e: HTMLElement) => {
+                // @ts-ignore
+                ref.current = e;
+                if (compRef) {
+                    // @ts-ignore
+                    compRef.current = e;
+                }
+            }}
+        > {children} </Tag >
     )
-}
+})
 
 export default OutsideClickWrapper;

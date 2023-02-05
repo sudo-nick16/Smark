@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import smark from "../assets/smark.png";
 import { bookmarksAtom, currentListAtom, } from '../state';
 import { Bookmark } from '../types';
@@ -8,16 +8,11 @@ import Profile from './Profile';
 type NavbarProps = {}
 
 const Navbar: React.FC<NavbarProps> = () => {
-
     const [navList] = useAtom(bookmarksAtom);
     const [currentList, setCurrentList] = useAtom(currentListAtom);
 
-    console.log(navList, " nav list");
-
     const handleClick = (ele: Bookmark) => {
-        console.log('clicked')
         setCurrentList(ele.title);
-        // setNavList(curr => curr.map(l => ({ ...l, selected: ele.title == l.title })))
     };
 
     return (
@@ -31,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                         navList.map((ele, i) => (
                             <div
                                 onClick={() => handleClick(ele)} key={i}
-                                className={`py-2 px-4 ${ele.title == currentList && "bg-dark-gray"} transition-all duration-150 bg-opacity-50 w-full hover:bg-dark-gray hover:bg-opacity-70 hover:cursor-pointer rounded-3xl font-semibold`}
+                                className={`py-2 px-4 2xl:py-3 ${ele.title == currentList?.title && "bg-dark-gray"} text-[1rem] transition-all duration-150 bg-opacity-50 w-full hover:bg-dark-gray hover:bg-opacity-70 hover:cursor-pointer rounded-3xl font-semibold`}
                             >
                                 {ele.title}
                             </div>

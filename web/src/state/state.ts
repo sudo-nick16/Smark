@@ -11,14 +11,21 @@ export const searchQueryAtom = atom("");
 export const selectionActiveAtom = atom(false);
 
 export const currentListAtom = atom(
-    (get) => get(bookmarksAtom).find(e => e.selected)?.title,
+    (get) => get(bookmarksAtom).find(e => e.selected),
     async (get, set, title: string) => {
         console.log(get(bookmarksAtom));
-        set(bookmarksAtom, (b) => b.map(e => ({ ...e, selected: e.title == title })));
+        set(bookmarksAtom, (b) => b.map(e => ({ ...e, selected: e.title === title })));
     });
 
 
-export const openedSectionAtom = currentListAtom;
+export const openedSectionAtom = atom(
+    (get) => get(currentListAtom),
+    async (get, set, title: string) => {
+        set(currentListAtom, title);
+    }
+)
+
+export const searchActive = atom(false);
 // atom(
 // (get) => get(currentListAtom),
 // async (get, set, title: string) => {
@@ -27,4 +34,4 @@ export const openedSectionAtom = currentListAtom;
 // );
 
 export const showAuthModalAtom = atom(true);
-export const urllistAtom = atom((get) => get(bookmarksAtom).find(e => e.title === get(currentListAtom))?.children);
+export const urllistAtom = atom((get) => get(bookmarksAtom).find(e => e.title === get(currentListAtom)?.title)?.children);

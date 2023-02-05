@@ -22,12 +22,12 @@ function areSame(ob: AO, ob2: AO): boolean {
 }
 
 function App() {
-    const searchRef = useRef<HTMLInputElement>();
+    const searchRef = useRef<HTMLInputElement>(null);
     const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
     console.log(bookmarks, "bookmarks -- ");
 
     console.log("app");
-
+    
     useEffect(() => {
         const addStateUpdateListener = (key: string) => {
             if (typeof chrome.storage === "undefined") {
@@ -70,13 +70,13 @@ function App() {
 
     return (
         <Suspense>
-            <div className="h-full w-[95%] lg:max-w-[1100px] overflow-x-hidden">
+            <div className="h-full w-[95%] xl:w-[1280px] 2xl:w-[1538px]">
                 <div className="h-full grid grid-cols-4 text-white font-white w-full">
                     <Navbar />
                     <div className="border-l border-r border-dark-gray col-span-2 h-full">
                         <UrlList className="col-span-2 h-full" />
                     </div>
-                    <div className="p-3 max-w-[300px]">
+                    <div className="p-3 ">
                         <Search {...{ searchRef }} />
                     </div>
                 </div>

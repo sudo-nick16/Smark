@@ -3,24 +3,31 @@
 # https://gqlgen.com/getting-started/
 
 type User {
-  id: ID!
+  id: String!
   name: String!
   username: String!
   email: String!
-  token: Int!
-}
-
-input NewUser {
-  id: ID!
-  name: String!
-  username: String!
-  email: String!
+  public: Boolean!
+  tokenVersion: Int!
 }
 
 type Bookmark {
-    userId: ID!
+    title: String!
+    icon: String!
+    url: String!
+    favorite: String!
+    tip: String!
     private: Boolean!
+    type: Int!
+    children: [Bookmark!]!
+}
 
+input NewBookmark {
+    title: String!
+    icon: String!
+    url: String!
+    type: Int!
+    children: [Bookmark!]!
 }
 
 type Query {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import OutsideClickWrapper from "./OutsideClickWrapper";
 
 const ContextMenu = ({
     menuItems,
@@ -9,29 +9,23 @@ const ContextMenu = ({
     menuItems: { name: string, handler: () => void }[],
     setShow: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-    const menuRef = useRef<HTMLDivElement>();
-
-    useEffect(() => {
-        const handleOutsideClick = (e: MouseEvent) => {
-            console.log("event target: ", e.target, "menuref current: ", menuRef.current);
-            if (e.target != menuRef.current && !menuRef.current?.contains(e.target as Node)) {
-                setShow(false);
-            }
-        }
-        window.addEventListener("mousedown", handleOutsideClick);
-        return () => {
-            window.removeEventListener("mousedown", handleOutsideClick);
-        }
-    }, [])
-
     return (
-        <div
-            // @ts-ignore
-            ref={menuRef}
-            style={{
-                top: xy.y,
-                left: xy.x,
+        <OutsideClickWrapper
+            onOutsideClick={() => {
+                setShow(false);
             }}
+            style={(() => {
+                if (xy.y + menuItems.length * 45 > window.innerHeight) {
+                    return {
+                        bottom: window.innerHeight - xy.y,
+                        left: xy.x,
+                    }
+                }
+                return {
+                    top: xy.y,
+                    left: xy.x,
+                }
+            })()}
             className={`fixed z-30 flex flex-col bg-black s-shadow p-1 rounded-lg`}
         >
             {
@@ -39,13 +33,13 @@ const ContextMenu = ({
                     <div
                         key={k.name + i}
                         onClick={k.handler}
-                        className='select-none hover:bg-dark-gray px-2 rounded-lg cursor-pointer'
+                        className='select-none text-base hover:bg-dark-gray px-2 rounded-lg cursor-pointer'
                     >
                         {k.name}
                     </div>
                 )
             }
-        </div>
+        </OutsideClickWrapper>
     )
 }
 

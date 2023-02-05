@@ -18,6 +18,7 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+    loadConfig();
 
 	schema := graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}})
 
