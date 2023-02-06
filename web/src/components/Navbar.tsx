@@ -26,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                         navList.map((ele, i) => (
                             <div
                                 onClick={() => handleClick(ele)} key={i}
-                                className={`py-2 px-4 2xl:py-3 ${ele.title == currentList?.title && "bg-dark-gray"} text-[1rem] transition-all duration-150 bg-opacity-50 w-full hover:bg-dark-gray hover:bg-opacity-70 hover:cursor-pointer rounded-3xl font-semibold`}
+                                className={`py-2 px-4 2xl:py-3 ${ele.selected && "bg-dark-gray"} text-[1rem] transition-all duration-150 bg-opacity-50 w-full hover:bg-dark-gray hover:bg-opacity-70 hover:cursor-pointer rounded-3xl font-semibold`}
                             >
                                 {ele.title}
                             </div>

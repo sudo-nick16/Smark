@@ -6,11 +6,11 @@
     "workspaces": [
         "web",
         "extension",
-        "api"
+        "server"
     ],
     "scripts": {
         "web": "yarn workspace @smark/web",
-        "api": "yarn workspace @smark/api",
+        "server": "yarn workspace @smark/server",
         "extension": "yarn workspace @smark/extension"
     }
 }

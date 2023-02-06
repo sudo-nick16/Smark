@@ -43,7 +43,7 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                     setBookmarks(bookmarks.map(b => {
                         if (b.title === currList?.title) {
                             b.children.push({
-                                title: searchString.trimEnd(),
+                                title: searchString,
                                 icon: "https://www.redditstatic.com/desktop2x/img/favicon/android-icon-192x192.png",
                                 url: "https://google.com/",
                                 selected: false,
@@ -57,14 +57,14 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                 }
                 case "cl": {
                     console.log("Adding the list");
-                    if (bookmarks.find(b => b.title === searchString.trimEnd())) {
+                    if (bookmarks.find(b => b.title === searchString)) {
                         alert("List already exists");
                         return;
                     }
                     setBookmarks((bm) => {
                         bm.forEach(b => b.selected = false)
                         bm.push({
-                            title: searchString.trimEnd(),
+                            title: searchString,
                             icon: "",
                             url: "",
                             selected: true,
@@ -78,7 +78,7 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                 default:
                     break;
             }
-
+            setSearchString("");
         }
     }
 

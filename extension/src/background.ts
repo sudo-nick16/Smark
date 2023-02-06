@@ -56,16 +56,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                             newBook
                         ]
                     },
-                    {
-                        title: "Personal",
-                        icon: "",
-                        url: "",
-                        selected: true,
-                        favorite: false,
-                        children: [
-                            newBook
-                        ]
-                    },
                 ]
             })
             chrome.storage.local.get(["bookmarks"], (d) => {
@@ -75,7 +65,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         } else {
             chrome.storage.local.set({
                 bookmarks: data.bookmarks.map((c: any) => {
-                    if (c.title === "Personal") {
+                    if (c.title === "Home") {
                         return {
                             ...c,
                             children: [...c.children, newBook],
