@@ -18,7 +18,6 @@ const schema = new Schema({
     tokenVersion: {
         type: Number,
         required: true,
-        unique: true
     },
 }, {
     timestamps: true,

@@ -9,6 +9,9 @@ export class BookmarkList {
     @Field(() => String)
     title: string
 
+    @Field(() => String)
+    public: string
+
     @Field(() => Boolean)
     favorite: boolean;
 
@@ -24,11 +27,17 @@ export class Bookmark {
     @Field(()  => String)
     userId: string;
 
+    @Field(()  => String)
+    bookmarkListId: string;
+
     @Field(() => String)
     title: string
 
     @Field(() => String)
     url: string
+
+    @Field(() => String)
+    icon: string
 
     @Field(() => Boolean)
     favorite: boolean;

@@ -1,5 +1,5 @@
-import { User } from "./entity";
-import { UserMongo } from "./model";
+import { User } from "../entity/User";
+import { UserMongo } from "../models/UserModel";
 
 export interface UserRepoImpl {
     findUserById(id: string): Promise<User | undefined>;
@@ -26,6 +26,4 @@ export class UserRepo implements UserRepoImpl {
         });
         return user?.toObject();
     }
-
-
 }
