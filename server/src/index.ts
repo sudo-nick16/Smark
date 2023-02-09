@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
-import { buildSchema } from "type-graphql";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -10,9 +9,11 @@ import { BookmarkResolver } from './resolvers/BookmarkResolver';
 import { UserResolver } from './resolvers/UserResolver';
 import { DB_URI, PORT } from './constants';
 import { Context } from './graphql-types/Context';
+import { buildSchema } from 'type-graphql';
 
 function connectToDb() {
     mongoose.set("debug", true);
+    console.log(DB_URI)
     mongoose.connect(DB_URI, {}, (err) => {
         if (!err) {
             console.log("connected to db");

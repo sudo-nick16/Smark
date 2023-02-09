@@ -10,6 +10,10 @@ const bookmarkListSchema = new Schema({
         required: true,
         unique: true
     },
+    userId: {
+        type: String,
+        required: true,
+    },
     public: {
         type: Boolean,
         required: true,
@@ -17,11 +21,11 @@ const bookmarkListSchema = new Schema({
     },
 }, {
     timestamps: true,
-    collection: "users",
+    collection: "bookmarklists",
 });
 
-export const BookmarkListMongo = model("BookmarkList", bookmarkListSchema);
- 
+export const BookmarkListModel = model("BookmarkList", bookmarkListSchema);
+
 const bookmarkSchema = new Schema({
     title: {
         type: String,
@@ -37,6 +41,14 @@ const bookmarkSchema = new Schema({
         required: true,
         unique: true
     },
+    listId: {
+        type: String,
+        required: true,
+    },
+    userId: {
+        type: String,
+        required: true,
+    },
     icon: {
         type: String,
         required: true,
@@ -44,7 +56,7 @@ const bookmarkSchema = new Schema({
     },
 }, {
     timestamps: true,
-    collection: "users",
+    collection: "bookmarks",
 });
 
-export const BookmarkMongo = model("BookmarkList", bookmarkSchema);
+export const BookmarkModel = model("Bookmark", bookmarkSchema);

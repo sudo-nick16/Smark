@@ -4,11 +4,12 @@
     "main": "./dist/index.js",
     "license": "MIT",
     "scripts": {
-        "dev": "ts-node ./api/index.ts",
+        "dev": "ts-node ./src/index.ts",
         "build": "tsc"
     },
     "dependencies": {
         "@apollo/server": "^4.3.2",
+        "@typegoose/typegoose": "^10.1.1",
         "@types/jsonwebtoken": "^9.0.1",
         "class-validator": "^0.14.0",
         "cors": "^2.8.5",
@@ -16,7 +17,7 @@
         "express": "^4.18.2",
         "graphql": "15.5.0",
         "jsonwebtoken": "^9.0.0",
-        "mongoose": "^6.9.0",
+        "mongoose": "^6.9.1",
         "reflect-metadata": "^0.1.13",
         "ts-node": "^10.9.1",
         "type-graphql": "1.2.0-rc.1",

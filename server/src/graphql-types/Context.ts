@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 
-export type TokenPayload = {
-    userId: string,
-    username: string,
-    tokenVersion: number,
+export class TokenPayload {
+    userId: string;
+    username: string;
+    tokenVersion: number;
 }
 
-export type Context = {
+export class Context {
     req: Request;
     res: Response;
     user: TokenPayload | undefined;

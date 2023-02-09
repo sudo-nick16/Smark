@@ -1,6 +1,10 @@
 import { model, Schema } from "mongoose";
+import { ObjectType } from "type-graphql";
 
-const schema = new Schema({
+@ObjectType()
+@Schema()
+export class User {
+    @Field(() =>)
     name: {
         type: String,
         required: true,
@@ -22,7 +26,6 @@ const schema = new Schema({
 }, {
     timestamps: true,
     collection: "users",
-});
+};
 
-export const UserMongo = model("User", schema);
-
+export const UserModel = model("User", schema);
