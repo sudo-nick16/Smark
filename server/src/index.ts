@@ -10,15 +10,17 @@ import { UserResolver } from './resolvers/UserResolver';
 import { DB_URI, PORT } from './constants';
 import { Context } from './graphql-types/Context';
 import { buildSchema } from 'type-graphql';
+import { handleGoogleCallback, redirectToGoogleAuthWorkflow } from './controllers/AuthControllers';
 
 function connectToDb() {
     mongoose.set("debug", true);
-    console.log(DB_URI)
+    mongoose.set("strictQuery", true);
     mongoose.connect(DB_URI, {}, (err) => {
-        if (!err) {
-            console.log("connected to db");
+        if (err) {
+            console.log("couldn't connect to db: ", err);
+            return;
         }
-        console.log("couldn't connect to db: ", err!.message);
+        console.log("connected to db");
     })
 }
 
@@ -44,6 +46,10 @@ async function run() {
 
     await server.start();
 
+    app.get("/oauth/google", redirectToGoogleAuthWorkflow)
+
+    app.get("/oauth/google/callback", handleGoogleCallback)
+
     app.use('/graphql', expressMiddleware(server, {
         context: async ({ req, res }) => {
             const authHeader = req.headers.authorization;
@@ -61,7 +67,7 @@ async function run() {
     }))
 
     app.listen(PORT, () => {
-        console.log("Server started on http://localhost:4000/graphql");
+        console.log(`Server started on http://localhost:${PORT}/graphql`);
     })
 }
 

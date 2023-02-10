@@ -1,6 +1,6 @@
 import { REFRESH_SECRET, ACCESS_SECRET } from "../constants";
 import jwt from "jsonwebtoken";
-import { TokenPayload } from "src/graphql-types/Context";
+import { TokenPayload } from "../graphql-types/Context";
 
 export function createAccessToken(payload: TokenPayload): string {
     const token = jwt.sign(payload, ACCESS_SECRET, {

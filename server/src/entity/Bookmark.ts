@@ -14,8 +14,8 @@ export class BookmarkList {
     title: string
 
     @prop({ default: false })
-    @Field(() => String)
-    public: string
+    @Field(() => Boolean)
+    public: boolean
 
     @prop({ default: false })
     @Field(() => Boolean)
@@ -53,6 +53,7 @@ export class Bookmark {
 
     @Field(() => Boolean)
     favorite: boolean;
+
 }
 
 
@@ -64,8 +65,8 @@ export class BookmarkListComplete implements BookmarkList {
     @Field(() => String)
     title: string
 
-    @Field(() => String)
-    public: string
+    @Field(() => Boolean)
+    public: boolean
 
     @Field(() => Boolean)
     favorite: boolean;
