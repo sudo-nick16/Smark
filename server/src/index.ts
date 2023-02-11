@@ -10,7 +10,8 @@ import { UserResolver } from './resolvers/UserResolver';
 import { DB_URI, PORT } from './constants';
 import { Context } from './graphql-types/Context';
 import { buildSchema } from 'type-graphql';
-import { handleGoogleCallback, redirectToGoogleAuthWorkflow } from './controllers/AuthControllers';
+import { handleChromeAuth, handleGoogleCallback, redirectToGoogleAuthWorkflow, refreshToken } from './controllers/AuthControllers';
+import cookieParser from "cookie-parser";
 
 function connectToDb() {
     mongoose.set("debug", true);
@@ -28,8 +29,9 @@ async function run() {
     connectToDb();
     const app = express();
     app.use(express.json());
+    app.use(cookieParser());
     app.use(cors({
-        origin: "*",
+        origin: ["http://localhost:5173", "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif"],
         methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
         credentials: true,
         preflightContinue: true,
@@ -45,6 +47,10 @@ async function run() {
     })
 
     await server.start();
+
+    app.post("/auth/refresh-token", refreshToken)
+
+    app.get("/oauth/chrome", handleChromeAuth)
 
     app.get("/oauth/google", redirectToGoogleAuthWorkflow)
 

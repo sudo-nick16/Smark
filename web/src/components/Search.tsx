@@ -1,6 +1,7 @@
 import { useAtom } from 'jotai';
 import React from 'react'
 import { bookmarksAtom, currentListAtom, searchQueryAtom, searchTypeAtom } from '../state';
+import { Bookmark } from '../types';
 
 type SearchProps = {
     searchRef: React.RefObject<HTMLInputElement | undefined>;
@@ -61,18 +62,17 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                         alert("List already exists");
                         return;
                     }
-                    setBookmarks((bm) => {
-                        bm.forEach(b => b.selected = false)
-                        bm.push({
-                            title: searchString,
-                            icon: "",
-                            url: "",
-                            selected: true,
-                            favorite: false,
-                            children: [],
-                        })
-                        return bm;
-                    })
+                    const bookmark = {
+                        title: searchString,
+                        icon: "",
+                        url: "",
+                        selected: true,
+                        favorite: false,
+                        children: [],
+                    }
+                    setBookmarks(
+                        [...bookmarks.map(b => ({ ...b, selected: false })), bookmark]
+                    )
                     break;
                 }
                 default:

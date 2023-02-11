@@ -3,7 +3,9 @@ import { Suspense, useEffect, useRef } from "react"
 import Navbar from "./components/Navbar"
 import Search from "./components/Search"
 import UrlList from "./components/UrlList"
-import { bookmarksAtom } from "./state";
+import { accessTokenAtom, bookmarksAtom, isAuthAtom } from "./state";
+import axios from "axios";
+import { SERVER_URL } from "./constants";
 
 type AO = {
     children: []
@@ -23,40 +25,60 @@ function areSame(ob: AO, ob2: AO): boolean {
 
 function App() {
     const searchRef = useRef<HTMLInputElement>(null);
-    const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
+    const [bookmarks] = useAtom(bookmarksAtom);
+    const [, setAccessToken] = useAtom(accessTokenAtom);
+    const [, setIsAuth] = useAtom(isAuthAtom);
     console.log(bookmarks, "bookmarks -- ");
 
     console.log("app");
-    
+
     useEffect(() => {
-        const addStateUpdateListener = (key: string) => {
-            if (typeof chrome.storage === "undefined") {
-                console.log("This is web.");
+        // const addStateUpdateListener = (key: string) => {
+        //     if (typeof chrome.storage === "undefined") {
+        //         console.log("This is web.");
+        //         return;
+        //     }
+        //     console.log("This is extension.");
+        //     chrome.storage.onChanged.addListener((changes, namespace) => {
+        //         console.log("Changes detected: ", changes)
+        //         for (let k of Object.keys(changes)) {
+        //             console.log("Key :", k, "Desired :", key);
+        //             if (k === key) {
+        //                 if (areSame(changes[key].newValue, changes[key].oldValue)) {
+        //                     console.log("No addition or removal of list or urls");
+        //                     return;
+        //                 }
+        //                 console.log("New Value to be set: ", changes[key].newValue);
+        //                 setBookmarks(changes[key].newValue);
+        //                 break;
+        //             }
+        //         }
+        //     })
+        // }
+
+        // addStateUpdateListener("bookmarks");
+
+        const fetchAccessToken = async () => {
+            const req = await axios.post(`${SERVER_URL}/auth/refresh-token`, {}, {
+                withCredentials: true
+            })
+            if (req.data.error) {
                 return;
             }
-            console.log("This is extension.");
-            chrome.storage.onChanged.addListener((changes, namespace) => {
-                console.log("Changes detected: ", changes)
-                for (let k of Object.keys(changes)) {
-                    console.log("Key :", k, "Desired :", key);
-                    if (k === key) {
-                        if (areSame(changes[key].newValue, changes[key].oldValue)) {
-                            console.log("No addition or removal of list or urls");
-                            return;
-                        }
-                        console.log("New Value to be set: ", changes[key].newValue);
-                        setBookmarks(changes[key].newValue);
-                        break;
-                    }
-                }
-            })
+            if (req.data.accessToken) {
+                setAccessToken(req.data.accessToken);
+                setIsAuth(true);
+            }
         }
 
-        addStateUpdateListener("bookmarks");
+        fetchAccessToken();
 
         const cmdListener = (e: KeyboardEvent) => {
             if (e.key === "/") {
                 searchRef.current?.focus();
+            }
+            if (e.key === "Escape") {
+                searchRef.current?.blur();
             }
         }
 
