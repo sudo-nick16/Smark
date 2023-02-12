@@ -30,6 +30,35 @@ export class AsyncStorage<T> {
     }
 }
 
+export class LocalStorage<T> {
+    getItem = (key: string): T | null => {
+        console.log("accessing chrome.local");
+        try {
+            const data = localStorage.getItem(key) || "";
+            console.log("accessed ", key, "got data", data)
+            return JSON.parse(data);
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+    }
+    setItem = (key: string, payload: T): void => {
+        console.log("writing to chrome.local");
+        try {
+            localStorage.setItem(key, JSON.stringify(payload));
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    removeItem = (key: string): void => {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+}
+
 const atomWithAsyncStorage = <T>(key: string, initialValue: T, storage: AsyncStorage<T>) => {
     const baseAtom = atom(initialValue)
     baseAtom.onMount = (setValue) => {

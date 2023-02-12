@@ -1,10 +1,11 @@
 import { useAtom } from 'jotai'
 import React, { Suspense, useRef, useState } from 'react'
-import { bookmarksAtom, urllistAtom } from '../state'
+import { bookmarksAtom, searchListAtom, urllistAtom } from '../state'
 import ContextMenu from './ContextMenu'
 import { Bookmark } from '../types';
 import OutsideClickWrapper from './OutsideClickWrapper';
 import Head from './Head';
+import { searchActiveAtom, searchTypeAtom } from '../state/state';
 
 type UrlListProps = {
     className?: string
@@ -21,6 +22,8 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url }, ind
     const [show, setShow] = useState(false);
     const editRef = useRef<HTMLParagraphElement>(null);
     const [edit, setEdit] = useState(false);
+    const [searchType] = useAtom(searchTypeAtom);
+    const [searchActive] = useAtom(searchActiveAtom);
     const [xy, setXY] = useState({
         x: 0,
         y: 0,
@@ -105,7 +108,7 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url }, ind
                 >{url}</a>
             </div>
             {
-                show && <ContextMenu {...{ setShow, xy, menuItems }} />
+                show && !searchActive && <ContextMenu {...{ setShow, xy, menuItems }} />
             }
             {
                 false && <div
@@ -121,6 +124,8 @@ const ListItem: React.FC<ListItemProps> = ({ bookmark: { title, icon, url }, ind
 
 const UrlList: React.FC<UrlListProps> = ({ className = "" }) => {
     const [urllist] = useAtom(urllistAtom);
+    const [searchList] = useAtom(searchListAtom);
+    const [searchActive] = useAtom(searchActiveAtom);
     console.log("urrlist: ", urllist);
 
     return (
@@ -129,9 +134,14 @@ const UrlList: React.FC<UrlListProps> = ({ className = "" }) => {
                 <Head />
                 <div className='h-full overflow-y-auto w-full flex flex-col' id="urllist-container">
                     {
-                        urllist && urllist.map((e, i) =>
-                            <ListItem index={i} bookmark={e} key={i} />
-                        )
+                        searchActive ?
+                            searchList && searchList.map((e, i) =>
+                                <ListItem index={i} bookmark={e} key={i} />
+                            ) :
+
+                            urllist && urllist.map((e, i) =>
+                                <ListItem index={i} bookmark={e} key={i} />
+                            )
                     }
                 </div>
             </div>

@@ -3,7 +3,7 @@ import { Suspense, useEffect, useRef } from "react"
 import Navbar from "./components/Navbar"
 import Search from "./components/Search"
 import UrlList from "./components/UrlList"
-import { accessTokenAtom, bookmarksAtom, isAuthAtom } from "./state";
+import { accessTokenAtom, bookmarksAtom, isAuthAtom, searchActiveAtom } from "./state";
 import axios from "axios";
 import { SERVER_URL } from "./constants";
 
@@ -26,6 +26,7 @@ function areSame(ob: AO, ob2: AO): boolean {
 function App() {
     const searchRef = useRef<HTMLInputElement>(null);
     const [bookmarks] = useAtom(bookmarksAtom);
+    const [, setSearchActive] = useAtom(searchActiveAtom);
     const [, setAccessToken] = useAtom(accessTokenAtom);
     const [, setIsAuth] = useAtom(isAuthAtom);
     console.log(bookmarks, "bookmarks -- ");
@@ -78,6 +79,7 @@ function App() {
                 searchRef.current?.focus();
             }
             if (e.key === "Escape") {
+                setSearchActive(false);
                 searchRef.current?.blur();
             }
         }

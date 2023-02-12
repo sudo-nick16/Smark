@@ -1,10 +1,11 @@
 import { useAtom } from 'jotai';
 import React from 'react'
-import { bookmarksAtom, currentListAtom, searchQueryAtom, searchTypeAtom } from '../state';
+import { bookmarksAtom, currentListAtom, searchActiveAtom, searchQueryAtom, searchTypeAtom, urllistAtom } from '../state';
 import { Bookmark } from '../types';
+import slist from "../assets/slist.png";
 
 type SearchProps = {
-    searchRef: React.RefObject<HTMLInputElement | undefined>;
+    searchRef: React.RefObject<HTMLInputElement>;
 }
 
 const Search: React.FC<SearchProps> = ({ searchRef }) => {
@@ -18,10 +19,12 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
         dl: "delete lists",
     };
 
+    const searchCommands = ["sa", "su", "sl"];
     const [searchType, setSearchType] = useAtom(searchTypeAtom);
     const [searchString, setSearchString] = useAtom(searchQueryAtom);
     const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
     const [currList] = useAtom(currentListAtom);
+    const [searchActive, setSearchActive] = useAtom(searchActiveAtom);
 
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const str = event.target.value.trimStart();
@@ -29,6 +32,12 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
             // @ts-ignore
             if (cmdMap[str.trimEnd()]) {
                 setSearchType(str.trimEnd());
+                if (searchCommands.includes(str.trimEnd())) {
+                    setSearchActive(true);
+                    console.log("search mode active")
+                } else {
+                    setSearchActive(false);
+                }
                 setSearchString("");
                 return;
             }
@@ -46,7 +55,7 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                             b.children.push({
                                 title: searchString,
                                 icon: "https://www.redditstatic.com/desktop2x/img/favicon/android-icon-192x192.png",
-                                url: "https://google.com/",
+                                url: searchString,
                                 selected: false,
                                 favorite: false,
                                 children: [],
@@ -64,7 +73,7 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                     }
                     const bookmark = {
                         title: searchString,
-                        icon: "",
+                        icon: slist,
                         url: "",
                         selected: true,
                         favorite: false,
@@ -75,6 +84,20 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                     )
                     break;
                 }
+                // case "su": {
+                //     console.log("Searching the url");
+                //     const urls: Bookmark[] = [];
+                //     bookmarks.forEach(l => {
+                //         if (l.selected) {
+                //             l.children.forEach(u => {
+                //                 if (u.url.includes(searchString) || u.title.includes(searchString)) {
+                //                     urls.push(u);
+                //                 }
+                //             })
+                //         }
+                //     })
+                //     break;
+                // }
                 default:
                     break;
             }
