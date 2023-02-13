@@ -45,18 +45,18 @@ export const searchListAtom = atom(
             case "sa": {
                 const urls = get(bookmarksAtom).reduce(
                     (acc, e) => {
-                        const u = e.children.filter(b => b.title.toLowerCase().includes(get(searchQueryAtom).toLowerCase()) || b.url.toLowerCase().includes(get(searchQueryAtom).toLowerCase()));
+                        const u = e.children.filter(b => b.title.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()) || b.url.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()));
                         return [...acc, ...u];
                     }, [] as Bookmarks)
                 return urls;
             }
             case "su": {
                 return get(bookmarksAtom).find(f => f.selected)!.children.filter(
-                    b => b.title.toLowerCase().includes(get(searchQueryAtom).toLowerCase()) || b.url.toLowerCase().includes(get(searchQueryAtom).toLowerCase())
+                    b => b.title.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()) || b.url.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase())
                 )
             }
             case "sl": {
-                return get(bookmarksAtom).filter(b => b.title.toLowerCase().includes(get(searchQueryAtom).toLowerCase()))
+                return get(bookmarksAtom).filter(b => b.title.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()))
             }
         }
         // const urls = get(bookmarksAtom).reduce(
