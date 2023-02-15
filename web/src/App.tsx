@@ -69,7 +69,9 @@ function App() {
             if (req.data.accessToken) {
                 setAccessToken(req.data.accessToken);
                 setIsAuth(true);
+                return
             }
+            setIsAuth(false);
         }
 
         fetchAccessToken();

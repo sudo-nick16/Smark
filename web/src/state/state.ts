@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, useAtom } from "jotai";
 import { Bookmarks } from "../types";
 import { myAtomWithStorage } from "../utils/storage";
 
@@ -68,5 +68,21 @@ export const searchListAtom = atom(
     }
 )
 
-export const isAuthAtom = atom(false);
 export const accessTokenAtom = atom("");
+export const authAtom = atom(true);
+export const isAuthAtom = atom(
+    (get) => get(authAtom),
+    (_, set, val: boolean) => {
+        set(authAtom, val);
+        if (!val) {
+            set(accessTokenAtom, "");
+        }
+    });
+export const syncStatusAtom = atom("Syncing...");
+export const userAtom = atom({
+    name: "guest",
+    username: "guest",
+    img: "https://sudonick.vercel.app/sudonick.svg",
+});
+
+

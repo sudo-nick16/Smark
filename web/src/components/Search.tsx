@@ -63,6 +63,7 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                         }
                         return b;
                     }))
+                    setSearchString("");
                     break;
                 }
                 case "cl": {
@@ -82,26 +83,40 @@ const Search: React.FC<SearchProps> = ({ searchRef }) => {
                     setBookmarks(
                         [...bookmarks.map(b => ({ ...b, selected: false })), bookmark]
                     )
+                    setSearchString("");
                     break;
                 }
-                // case "su": {
-                //     console.log("Searching the url");
-                //     const urls: Bookmark[] = [];
-                //     bookmarks.forEach(l => {
-                //         if (l.selected) {
-                //             l.children.forEach(u => {
-                //                 if (u.url.includes(searchString) || u.title.includes(searchString)) {
-                //                     urls.push(u);
-                //                 }
-                //             })
-                //         }
-                //     })
-                //     break;
-                // }
+                case "su": {
+                    setSearchString((s) => s.trimEnd());
+                    break;
+                    // console.log("Searching the url");
+                    // const urls: Bookmark[] = [];
+                    // bookmarks.forEach(l => {
+                    //     if (l.selected) {
+                    //         l.children.forEach(u => {
+                    //             if (u.url.includes(searchString) || u.title.includes(searchString)) {
+                    //                 urls.push(u);
+                    //             }
+                    //         })
+                    //     }
+                    // })
+                    // break;
+                }
+                case "sl": {
+                    searchRef.current!.blur();
+                    setSearchString((s) => s.trimEnd());
+                    break;
+                }
+                case "sa": {
+                    searchRef.current!.blur();
+                    setSearchString((s) => s.trimEnd());
+                    break;
+                }
+
                 default:
                     break;
             }
-            setSearchString("");
+            searchRef.current!.blur();
         }
     }
 

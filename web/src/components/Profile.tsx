@@ -1,12 +1,16 @@
+import { useAtom } from 'jotai';
 import React, { useRef, useState } from 'react'
 import options from '../assets/option.png'
+import { syncStatusAtom, userAtom } from '../state';
 import ContextMenu from './ContextMenu';
 
 type ProfileProps = {}
 
 const Profile: React.FC<ProfileProps> = () => {
     const [show, setShow] = useState(false);
-    const selfRef = useRef<HTMLElement>(null);
+    const [user] = useAtom(userAtom);
+    const [syncStatus] = useAtom(syncStatusAtom);
+    const selfRef = useRef<HTMLDivElement>(null);
 
     const [xy, setXY] = useState({
         x: 0,
@@ -36,14 +40,14 @@ const Profile: React.FC<ProfileProps> = () => {
             className='flex items-center w-full mt-auto hover:bg-dark-gray p-2 rounded-full'
         >
             <div className='w-fit mr-3'>
-                <img className='h-10 w-10' src="https://sudonick.vercel.app/sudonick.svg" alt="profile" />
+                <img className='h-10 w-10' src={user.img} alt="profile" />
             </div>
             <div className=''>
                 <h1 className='font-bold text-lg leading-tight'>
-                    sudonick
+                    {user.username}
                 </h1>
                 <h3 className='text-md-gray text-sm leading-tight'>
-                    syncing
+                    {syncStatus}
                 </h3>
             </div>
             <div className='mr-2 ml-auto hover:cursor-pointer'>

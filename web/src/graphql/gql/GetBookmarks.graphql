@@ -1,0 +1,9 @@
+query getBookmarks($listId: String!){
+  bookmarks(listId: $listId) {
+    listId
+    _id
+    title
+    url
+    icon
+  }
+}
