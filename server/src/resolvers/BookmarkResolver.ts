@@ -26,6 +26,7 @@ export class BookmarkResolver {
         }
     }
 
+    @UseMiddleware(isAuth)
     @Mutation(() => BookmarkList, { nullable: true })
     async addBookmarkList(
         @Arg("title", { nullable: false }) title: String,
@@ -46,6 +47,7 @@ export class BookmarkResolver {
         }
     }
 
+    @UseMiddleware(isAuth)
     @Mutation(() => Boolean, { nullable: true })
     async addBookmark(
         @Arg("input", { nullable: false }) input: BookmarkInput,

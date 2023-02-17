@@ -6,6 +6,15 @@
     "omnibox": {
         "keyword": "sm"
     },
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjxPMVJ7O3sNgPYspQ/WZHTgj1WHmNkK+JSjjZaf9TiOHQ3hVqklBuZTzn3bKsswkv3+25em77XBJ2OKEuJU6b9NsOIf4sDWq7ZJ39zLgKWI/6X3WwhhvYsZqUDs+fJIQ6IK8odN/LbumRkyabevN3P4BUjlsgy22zFkunjvBAiq/6j2QeQBNMKBp0AtPJ7OQ9yzUvCQBioCDxDtYdT/zZLi4p6JCT1klHxWO+O/9zXns/P4DOkxnW8STVpPPjEE1IFWUScYYGw63gu1sX9pcmKKWaycu31BJWJTb6iVuX0j8tctic9pVK0Td3B12Lvv0Iao5P000CPPhKfchSaywiQIDAQAB",
+    "oauth2": {
+        "client_id": "980834304638-5ipdf6d20r77kosjjb1l8gj18hgr62c3.apps.googleusercontent.com",
+        "scopes": [
+            "email",
+            "profile",
+            "openid"
+        ]
+    },
     "icons": {
         "16": "./smark.png",
         "24": "./smark.png",
@@ -28,6 +37,7 @@
         "storage",
         "unlimitedStorage",
         "tabs",
+        "identity",
         "bookmarks",
         "clipboardRead",
         "clipboardWrite",
