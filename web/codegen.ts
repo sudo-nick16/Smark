@@ -5,8 +5,17 @@ const config: CodegenConfig = {
     documents: ["src/graphql/gql/*.graphql"],
     emitLegacyCommonJSImports: false,
     generates: {
-        './src/graphql/generated/': {
-            preset : "client"
+        './src/graphql/generated.ts': {
+            plugins: [
+                'typescript',
+                'typescript-operations',
+                'typescript-urql',
+            ],
+            config: {
+                withComponent: false,
+                withHooks: true,
+                withHOC: false,
+            }
         }
     },
 }

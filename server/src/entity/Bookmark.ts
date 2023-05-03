@@ -1,17 +1,22 @@
 import 'reflect-metadata';
 import { getModelForClass, index, modelOptions, prop } from '@typegoose/typegoose';
 import { Field, ObjectType } from 'type-graphql';
+import { ObjectId } from 'mongoose';
 
 @modelOptions({ schemaOptions: { collection: "BookmarkLists" } })
 @ObjectType()
 export class BookmarkList {
-    @prop({ required: true, unique: true, index: true })
+    // @prop({ auto: true, required: true, unique: true, index: true })
     @Field(() => String)
-    _id: string;
+    readonly _id: string;
 
     @prop({ required: true })
     @Field(() => String)
     title: string
+
+    @prop({ required: false, default: false })
+    @Field(() => Boolean)
+    default: boolean
 
     @prop({ default: false })
     @Field(() => Boolean)
@@ -23,16 +28,16 @@ export class BookmarkList {
 
     @prop({ required: true, ref: "User", index: true })
     @Field(() => String)
-    userId: string;
+    userId: ObjectId;
 }
 
 @modelOptions({ schemaOptions: { collection: "Bookmarks" } })
 @index({ userId: 1, listId: 1 }, { unique: true })
 @ObjectType()
 export class Bookmark {
-    @prop({ required: true, unique: true, index: true })
+    // @prop({ auto: true, required: true, unique: true, index: true })
     @Field(() => String)
-    _id: string;
+    readonly _id: string;
 
     @prop({ required: true, ref: "Users", index: true })
     @Field(() => String)
@@ -59,6 +64,7 @@ export class Bookmark {
 
 @ObjectType()
 export class BookmarkListComplete implements BookmarkList {
+
     @Field(() => String)
     _id: string;
 
@@ -71,8 +77,11 @@ export class BookmarkListComplete implements BookmarkList {
     @Field(() => Boolean)
     favorite: boolean;
 
+    @Field(() => Boolean)
+    default: boolean;
+
     @Field(() => String)
-    userId: string;
+    userId: ObjectId;
 
     @Field(() => [Bookmark])
     children: Bookmark[]

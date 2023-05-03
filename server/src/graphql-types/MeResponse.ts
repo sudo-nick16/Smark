@@ -10,7 +10,4 @@ export class MeResponse {
 
     @Field(() => [BookmarkListComplete])
     bookmarkLists: BookmarkListComplete[];
-
-    @Field(() => String)
-    error: string;
 }

@@ -1,0 +1,3 @@
+mutation AddBookmark($bookmark: BookmarkInput!) {
+  addBookmark(bookmark: $bookmark)
+}

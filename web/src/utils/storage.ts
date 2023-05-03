@@ -2,7 +2,10 @@ import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
 export class AsyncStorage<T> {
-    getItem = async (key: string): Promise<T | null> => {
+    constructor(private defaultValue: T) {
+        this.defaultValue = defaultValue;
+    }
+    getItem = async (key: string): Promise<T> => {
         console.log("accessing chrome.local");
         try {
             const data = (await chrome.storage.local.get(key))[key];
@@ -10,7 +13,7 @@ export class AsyncStorage<T> {
             return data;
         } catch (e) {
             console.log(e);
-            return null;
+            return this.defaultValue;
         }
     }
     setItem = async (key: string, payload: T): Promise<void> => {

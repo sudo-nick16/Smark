@@ -1,0 +1,9 @@
+mutation addBookmarkList($title: String!) {
+  addBookmarkList(title: $title) {
+    title
+    _id
+    favorite
+    public
+    userId
+  }
+}

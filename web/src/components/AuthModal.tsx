@@ -2,7 +2,7 @@ import { useAtom } from 'jotai'
 import React from 'react'
 import google from '../assets/google.png'
 import close from '../assets/close.png'
-import { accessTokenAtom, isAuthAtom, showAuthModalAtom } from '../state'
+import { accessTokenAtom, authAtom, isAuthAtom, showAuthModalAtom } from '../state'
 import { SERVER_URL } from '../constants'
 import axios from 'axios'
 
@@ -10,8 +10,11 @@ type AuthModalProps = {}
 
 const AuthModal: React.FC<AuthModalProps> = () => {
     const [show, setShow] = useAtom(showAuthModalAtom);
-    const [isAuth, setIsAuth] = useAtom(isAuthAtom);
+    const [isAuth] = useAtom(authAtom);
+    const [, setIsAuth] = useAtom(isAuthAtom);
+
     const [, setAccessToken] = useAtom(accessTokenAtom);
+
     const handleSignin = async () => {
         console.log(chrome.storage, typeof chrome.storage)
         if (typeof chrome.storage === "undefined") {
@@ -33,9 +36,12 @@ const AuthModal: React.FC<AuthModalProps> = () => {
             });
         }
     }
+
+    console.log("isAuth : ", isAuth)
+
     return (
         <>
-            {show &&
+            {(!isAuth && show) &&
                 <div className='fixed z-10 backdrop-blur-sm h-screen w-full flex items-center justify-center'>
                     <div className='bg-black px-14 py-8 rounded-xl s-shadow flex flex-col items-center justify-center relative'>
                         <img src={close} alt="close" className='h-4 w-4 absolute top-3 left-3 cursor-pointer' onClick={() => setShow(!show)} />

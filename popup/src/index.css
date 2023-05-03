@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html{
+  background-color: #000000;
+  width: 250px;
+}
+
+#root {
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  margin: 0 auto !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #000000;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+.s-shadow {
+    box-shadow: rgb(255 255 255 / 20%) 0px 0px 9px, rgb(255 255 255 / 15%) 0px 0px 3px 1px;
+}
+
+ 
+*::-webkit-scrollbar {
+    width: 5px;
+}  
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #1d1d1d;
+}  
+
+body {
+  margin: 0;
+  display: flex;
+  /* place-items: center; */
+  /* min-width: 320px; */
+  /* min-height: 100vh; */
+}
+
+/* @media (prefers-color-scheme: light) { */
+/*   :root { */
+/*     color: #213547; */
+/*     background-color: #ffffff; */
+/*   } */
+/*   a:hover { */
+/*     color: #747bff; */
+/*   } */
+/*   button { */
+/*     background-color: #f9f9f9; */
+/*   } */
+/* } */
+
+@media screen and (min-width: 1028px) {
+    html {
+        font-size: 1.2rem;
+    }
+}
+

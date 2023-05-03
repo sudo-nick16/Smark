@@ -34,7 +34,7 @@ async function run() {
         origin: ["http://localhost:5173", "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif"],
         methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
         credentials: true,
-        preflightContinue: true,
+        preflightContinue: false,
     }));
 
     const schema = await buildSchema({
@@ -67,6 +67,8 @@ async function run() {
                 return { req, res, user: undefined };
             }
             const user = verifyAccessToken(authToken);
+
+            console.log("verified: ", user);
 
             return { req, res, user }
         }

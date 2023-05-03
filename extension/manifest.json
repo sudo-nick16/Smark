@@ -27,14 +27,17 @@
             "32": "./smark.png"
         },
         "default_title": "Smark",
-        "default_popup": "./options/index.html"
+        "default_popup": "./popup/index.html"
     },
     "background": {
         "service_worker": "./dist/background.js"
     },
     "options_page": "./options/index.html",
+    "host_permissions": [
+    ],
     "permissions": [
         "storage",
+        "cookies",
         "unlimitedStorage",
         "tabs",
         "identity",

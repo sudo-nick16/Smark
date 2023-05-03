@@ -19,6 +19,7 @@ const googleOauthUrl = client.generateAuthUrl({
 });
 
 export function redirectToGoogleAuthWorkflow(_: Request, res: Response) {
+    console.log("redirecting to google auth workflow", googleOauthUrl)
     res.redirect(googleOauthUrl);
 }
 
@@ -66,7 +67,12 @@ export async function handleGoogleCallback(req: Request, res: Response) {
     })
 
     if (u) {
-        setCookie(res, createRefreshToken(u.toObject()));
+        const uObj = u.toObject();
+        setCookie(res, createRefreshToken({
+            userId: uObj._id.toString(),
+            username: uObj.username,
+            tokenVersion: uObj.tokenVersion,
+        }));
         res.redirect(WEB_URL + "?success=true");
         return;
     }
@@ -79,7 +85,12 @@ export async function handleGoogleCallback(req: Request, res: Response) {
         tokenVersion: 0,
     });
 
-    setCookie(res, createRefreshToken(user.toObject()));
+    const uObj = user.toObject();
+    setCookie(res, createRefreshToken({
+        userId: uObj._id.toString(),
+        username: uObj.username,
+        tokenVersion: uObj.tokenVersion,
+    }));
 
     console.log(payload);
     res.redirect(WEB_URL + "?success=true");

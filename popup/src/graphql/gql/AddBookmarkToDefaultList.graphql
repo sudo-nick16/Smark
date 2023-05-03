@@ -1,0 +1,3 @@
+mutation AddBookmarkToDefaultList($bookmark: BookmarkInput!) {
+  addBookmarkToDefaultList(bookmark: $bookmark)
+}

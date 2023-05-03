@@ -6,11 +6,13 @@
     "workspaces": [
         "web",
         "extension",
-        "server"
+        "server", 
+        "popup"
     ],
     "scripts": {
         "web": "yarn workspace @smark/web",
         "server": "yarn workspace @smark/server",
-        "extension": "yarn workspace @smark/extension"
+        "extension": "yarn workspace @smark/extension",
+        "popup": "yarn workspace @smark/popup"
     }
 }

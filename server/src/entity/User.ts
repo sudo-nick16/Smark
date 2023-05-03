@@ -4,8 +4,9 @@ import { Field, Int, ObjectType } from 'type-graphql';
 @modelOptions({ schemaOptions: { collection: "Users" } })
 @ObjectType()
 export class User {
+
     @Field(() => String)
-    _id: string
+    readonly _id: string;
 
     @prop({required: true })
     @Field(() => String)

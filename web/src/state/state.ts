@@ -1,5 +1,5 @@
-import { atom, useAtom } from "jotai";
-import { Bookmarks } from "../types";
+import { atom } from "jotai";
+import { Bookmark, BookmarkList, Bookmarks } from "../types";
 import { myAtomWithStorage } from "../utils/storage";
 
 export const bookmarksAtom = myAtomWithStorage<Bookmarks>("bookmarks", []);
@@ -13,7 +13,8 @@ export const selectionActiveAtom = atom(false);
 
 export const currentListAtom = atom(
     (get) => get(bookmarksAtom).find(e => e.selected),
-    (get, set, title: string) => {
+    (_, set, title: string) => {
+
         set(bookmarksAtom, (b) => b.map(e => ({ ...e, selected: e.title === title })));
     }
 );
@@ -21,7 +22,7 @@ export const currentListAtom = atom(
 
 export const openedSectionAtom = atom(
     (get) => get(currentListAtom),
-    async (get, set, title: string) => {
+    async (_, set, title: string) => {
         set(currentListAtom, title);
     }
 )
@@ -47,7 +48,7 @@ export const searchListAtom = atom(
                     (acc, e) => {
                         const u = e.children.filter(b => b.title.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()) || b.url.toLowerCase().includes(get(searchQueryAtom).trimEnd().toLowerCase()));
                         return [...acc, ...u];
-                    }, [] as Bookmarks)
+                    }, [] as (Bookmark | BookmarkList)[])
                 return urls;
             }
             case "su": {
@@ -69,15 +70,19 @@ export const searchListAtom = atom(
 )
 
 export const accessTokenAtom = atom("");
-export const authAtom = atom(true);
+
+export const authAtom = atom(false);
+
+export const bookmarkListsSelection = atom(false);
+export const bookmarksSelection = atom(false);
+
 export const isAuthAtom = atom(
-    (get) => get(authAtom),
+    null,
     (_, set, val: boolean) => {
         set(authAtom, val);
-        if (!val) {
-            set(accessTokenAtom, "");
-        }
-    });
+    }
+);
+
 export const syncStatusAtom = atom("Syncing...");
 export const userAtom = atom({
     name: "guest",
@@ -86,3 +91,6 @@ export const userAtom = atom({
 });
 
 
+export const getBookmarkListAtom = atom(
+    (get) => get(bookmarksAtom).map(bl => bl.title),
+);

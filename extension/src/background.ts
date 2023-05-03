@@ -35,6 +35,12 @@ chrome.omnibox.onInputEntered.addListener((text) => {
     chrome.tabs.create({ url: newURL });
 });
 
+(async () => {
+    chrome.cookies.getAll({}, (cookies) => {
+        console.log("printing cookies: ", {cookies});
+    });
+})()
+
 chrome.runtime.onInstalled.addListener(() => {
     console.log("installed. ");
     chrome.storage.local.get(["bookmarks"], (data) => {
@@ -98,7 +104,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         } else {
             chrome.storage.local.set({
                 bookmarks: data.bookmarks.map((c: any) => {
-                    if (c.title === "Home") {
+                    console.log("Nickkk")
+                    if (c.title === "Nick") {
                         return {
                             ...c,
                             children: [...c.children, newBook],

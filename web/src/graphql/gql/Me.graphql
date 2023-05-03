@@ -1,0 +1,23 @@
+query Me {
+  me {
+    user {
+      _id
+      name
+      email
+      username
+      img
+    }
+    bookmarkLists {
+      _id
+      title
+      favorite
+      public
+      children {
+        _id
+        icon
+        title
+        url
+      }
+    }
+  }
+}

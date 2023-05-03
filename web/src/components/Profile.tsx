@@ -43,8 +43,8 @@ const Profile: React.FC<ProfileProps> = () => {
                 <img className='h-10 w-10' src={user.img} alt="profile" />
             </div>
             <div className=''>
-                <h1 className='font-bold text-lg leading-tight'>
-                    {user.username}
+                <h1 className='font-bold text-lg leading-tight line-clamp-1'>
+                    {user.name}
                 </h1>
                 <h3 className='text-md-gray text-sm leading-tight'>
                     {syncStatus}
