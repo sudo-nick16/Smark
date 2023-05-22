@@ -1,7 +1,6 @@
 #### Smark 
 
-Smark is the best bookmarking tool you'll ever use.
+Smark is the best bookmarking tool you'll ever use. (it could've been this but i
+settled for less.)
 
-Features:
-- Fast navigation to bookmarks using keyboard shortcuts. 
-- Would probably never have to use ur mouse. (i don't like using mouse)
+It's dogshit at this point. My indecision ruined this proj.
