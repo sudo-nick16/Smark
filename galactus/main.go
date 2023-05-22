@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/sudo-nick16/smark/galactus/handlers"
 	"github.com/sudo-nick16/smark/galactus/middlewares"
 	"github.com/sudo-nick16/smark/galactus/repository"
@@ -46,17 +47,29 @@ func main() {
 		},
 	})
 
+	corsMiddleware := cors.New(cors.Config{
+		AllowOrigins:     "localhost, http://localhost:5173, chrome-extension://fmolcfaicblfnadllocamjmheeaabhif",
+		AllowCredentials: true,
+	})
+
+	app.Use(corsMiddleware)
+
 	app.Static("", "index.html")
 
 	app.Post("/refresh-token", handlers.RefreshTokenHandler(config, userRepo))
 
 	app.Post("/sync", middlewares.AuthMiddleware(config), handlers.SyncBookmarks(userRepo, bookmarkRepo))
 
+
 	app.Get("/me", middlewares.AuthMiddleware(config), handlers.GetMe(userRepo))
 
 	app.Get("/oauth/google", handlers.GoogleAuthflowHandler(config))
 
-	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, userRepo))
+	app.Get("/oauth/chrome", handlers.ChromeAuthHandler(config, userRepo))
+
+	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, userRepo), corsMiddleware)
+
+    app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
 
 	app.Listen(config.Port)
 }

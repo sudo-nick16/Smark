@@ -3,6 +3,12 @@
     "description": "best bookmark management tool",
     "version": "0.1",
     "manifest_version": 3,
+    "commands": {
+        "add-bookmark": {
+            "suggested_key": "Alt+Shift+S",
+            "description": "Add current tab to smark."
+        }
+    },
     "omnibox": {
         "keyword": "sm"
     },
@@ -33,8 +39,7 @@
         "service_worker": "./dist/background.js"
     },
     "options_page": "./options/index.html",
-    "host_permissions": [
-    ],
+    "host_permissions": [],
     "permissions": [
         "storage",
         "cookies",

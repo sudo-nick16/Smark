@@ -18,6 +18,7 @@ func setupConfig() *types.Config {
 		DbUrl:      env.GetEnv("DB_URL", "mongodb://root:shorty1@127.0.0.1:27017/?serverSelectionTimeoutMS=2000"),
 		AccessKey:  env.GetEnv("ACCESS_KEY", "neioneio"),
 		RefreshKey: env.GetEnv("REFRESH_KEY", "arstarst"),
+		ClientUrl:  env.GetEnv("CLIENT_URL", "http://localhost:5173"),
 		GoogleConfig: types.GoogleConfig{
 			ClientId:     env.GetEnv("GOOGLE_CLIENT_ID", ""),
 			ClientSecret: env.GetEnv("GOOGLE_CLIENT_SECRET", ""),

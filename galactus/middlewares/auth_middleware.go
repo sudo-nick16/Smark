@@ -14,10 +14,16 @@ import (
 func AuthMiddleware(config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tokenFromHeader := c.GetReqHeaders()["Authorization"]
+
+		log.Printf("Cookie in the middleware: %v\n", c.Cookies("smark", ""))
+
 		log.Printf("Token from header: %v\n", tokenFromHeader)
 		if tokenFromHeader == "" {
 			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
 		}
+        if len(tokenFromHeader) < 2 {
+            return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
+        }
 		accessToken := strings.Split(tokenFromHeader, " ")[1]
 		log.Printf("access token: %v\n", accessToken)
 
@@ -28,7 +34,7 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 			return []byte(config.AccessKey), nil
 		})
 		if err != nil {
-            log.Printf("Error parsing token: %v\n", err)
+			log.Printf("Error parsing token: %v\n", err)
 			return fiber.NewError(fiber.StatusUnauthorized, "token is invalid")
 		}
 		tokenClaims := token.Claims.(jwt.MapClaims)

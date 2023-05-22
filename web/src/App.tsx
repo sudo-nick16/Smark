@@ -1,146 +1,221 @@
-import { useAtom } from "jotai";
-import { Suspense, useEffect, useRef } from "react"
-import Navbar from "./components/Navbar"
-import Search from "./components/Search"
-import UrlList from "./components/UrlList"
-import { accessTokenAtom, bookmarksAtom, isAuthAtom, searchActiveAtom, userAtom } from "./state";
+import { useEffect, useRef } from "react";
+import Navbar from "./components/Navbar";
 import axios from "axios";
 import { SERVER_URL } from "./constants";
-import { useMeQuery } from "./graphql/generated";
-import { BookmarkList, Bookmarks } from "./types";
+import {
+    logout,
+    RootState,
+    setAccessToken,
+    setUser,
+    useAppDispatch,
+} from "./store/index";
+import { Bookmark, BookmarkListWithChildren } from "./types";
+import useAxios from "./utils/useAxios";
+import { setBookmarksFromStorage } from "./store/asyncActions";
+import { useSelector } from "react-redux";
+import { getItem, setItem } from "./store/storageApi";
+import Input from "./components/Input";
+import MidPanel from "./components/MidPanel";
+import { isChrome } from "./utils/isChrome";
+import KeyListener from "./components/KeyListener";
+import AuthModal from "./components/AuthModal";
+import BookmarkEditModal from "./components/BookmarkEditModal";
+import { useLocation, useNavigate } from "react-router-dom";
 
-type AO = {
-    children: []
-}[]
+type AppProps = {};
 
-function areSame(ob: AO, ob2: AO): boolean {
-    if (ob.length === ob2.length) {
-        for (let i = 0; i < ob.length; ++i) {
-            if (ob[i].children.length !== ob2[i].children.length) {
-                return false;
-            }
+function diff(
+    oldVal: BookmarkListWithChildren[],
+    newVal: BookmarkListWithChildren[]
+): Bookmark | undefined {
+    for (let i = 0; i < oldVal.length; i++) {
+        if (oldVal[i].children.length !== newVal[i].children.length) {
+            return newVal[i].children[newVal[i].children.length - 1];
         }
-        return true;
     }
-    return false;
+    return undefined;
 }
 
-function App() {
+const App: React.FC<AppProps> = () => {
     const searchRef = useRef<HTMLInputElement>(null);
-    const [bookmarks, setBookmarks] = useAtom(bookmarksAtom);
-    const [user, setUser] = useAtom(userAtom);
-    const [, setSearchActive] = useAtom(searchActiveAtom);
-    const [, setAccessToken] = useAtom(accessTokenAtom);
-    const [, setIsAuth] = useAtom(isAuthAtom);
+    const api = useAxios();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    console.log("app");
+    const appDispatch = useAppDispatch();
+    const bookmarks = useSelector<RootState, BookmarkListWithChildren[]>(
+        (state) => state.bookmarks
+    );
 
-    const [
-        {
-            fetching,
-            data,
-            error,
-        }
-    ] = useMeQuery();
-
-    console.log("rerendered app");
+    console.log({ bookmarks });
 
     useEffect(() => {
-        console.log("data- -- ", data, fetching, error);
-        if (!fetching && !error && data) {
-            if (data.me?.bookmarkLists) {
-                const bookmarkList: Bookmarks = data.me?.bookmarkLists.map((bl, i) => ({
-                    ...bl,
-                    id: bl._id,
-                    selected: i == 0 ? true : false,
-                    children: bl.children.map(b => ({ ...b, selected: false })),
-                }));
-                console.log("bookmark list: ", bookmarkList)
-                setBookmarks(bookmarkList || []);
-            }
-            if (data.me?.user) {
-                setUser(data.me?.user);
-            }
-        }
-    }, [data])
-
-    useEffect(() => {
-        const addStateUpdateListener = (key: string) => {
-            if (typeof chrome.storage === "undefined") {
-                console.log("This is web.");
+        const handleOmniSearch = async () => {
+            console.log("searching");
+            console.log(location);
+            const params = Object.fromEntries(
+                new URLSearchParams(location.search)
+            );
+            const localBookmarks = await getItem<BookmarkListWithChildren[]>(
+                "bookmarks"
+            );
+            const query = params.query;
+            if (!query) {
+                navigate("/");
                 return;
             }
-            console.log("This is extension.");
-            chrome.storage.onChanged.addListener((changes, namespace) => {
-                console.log("Changes detected: ", changes)
+            if (params.listTitle) {
+                const listTitle = params.listTitle;
+                const bookmark = localBookmarks!
+                    .find((list) => list.title.trim().toLowerCase().indexOf(listTitle.trim().toLowerCase()) !== -1)
+                    ?.children.find(
+                        (b) =>
+                            b.title
+                                .trim()
+                                .toLowerCase()
+                                .indexOf(query.trim().toLowerCase()) !== -1 ||
+                            b.url
+                                .trim()
+                                .toLowerCase()
+                                .indexOf(query.trim().toLowerCase()) !== -1
+                    );
+                console.log(bookmark);
+                if (bookmark) {
+                    window.location.href = bookmark.url;
+                    return;
+                }
+                navigate("/");
+            }
+            const bookmark = localBookmarks!
+                .map((list) => list.children)
+                .flat()
+                .find(
+                    (b) =>
+                        b.title
+                            .trim()
+                            .toLowerCase()
+                            .indexOf(query.trim().toLowerCase()) !== -1 ||
+                        b.url
+                            .trim()
+                            .toLowerCase()
+                            .indexOf(query.trim().toLowerCase()) !== -1
+                );
+            console.log(bookmark);
+            if (bookmark) {
+                window.location.href = bookmark.url;
+                return;
+            }
+            navigate("/");
+        };
+
+        if (location.pathname === "/search") {
+            handleOmniSearch();
+        }
+
+        appDispatch(setBookmarksFromStorage());
+
+        const ensureStorage = async (key: string, defaultValue: any) => {
+            const val = await getItem<any>(key);
+            console.log({ val });
+            if (!val) {
+                await setItem(key, defaultValue);
+            }
+        };
+
+        if (!isChrome()) {
+            ensureStorage("bookmarks", [
+                {
+                    title: "Home",
+                    public: false,
+                    userId: "",
+                    children: [],
+                },
+            ]);
+            ensureStorage("smark_events", [
+                {
+                    type: "create_list",
+                    data: {
+                        title: "Home",
+                    },
+                },
+            ]);
+        }
+
+        const fetchRefreshToken = async () => {
+            try {
+                const response = await axios.post(
+                    `${SERVER_URL}/refresh-token`,
+                    {},
+                    {
+                        withCredentials: true,
+                    }
+                );
+
+                if (!response.data.error && response.data.accessToken) {
+                    appDispatch(setAccessToken(response.data.accessToken));
+                    const res = await api.get("/me");
+                    console.log("res", res.data);
+                    if (!res.data.error) {
+                        appDispatch(setUser(res.data.user));
+                    }
+                } else {
+                    console.log(response.data.error);
+                    appDispatch(logout());
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchRefreshToken();
+
+        const addStateUpdateListener = (key: string) => {
+            if (typeof chrome.storage === "undefined") {
+                console.log("[web]");
+                return;
+            }
+            console.log("[extension]");
+            chrome.storage.onChanged.addListener((changes, _) => {
                 for (let k of Object.keys(changes)) {
-                    console.log("Key :", k, "Desired :", key);
                     if (k === key) {
-                        if (areSame(changes[key].newValue, changes[key].oldValue)) {
-                            console.log("No addition or removal of list or urls");
-                            return;
+                        const bookmark = diff(
+                            changes[key].oldValue,
+                            changes[key].newValue
+                        );
+                        if (bookmark) {
+                            appDispatch(setBookmarksFromStorage());
                         }
-                        console.log("New Value to be set: ", changes[key].newValue);
-                        setBookmarks(changes[key].newValue);
                         break;
                     }
                 }
-            })
-        }
+            });
+        };
 
         addStateUpdateListener("bookmarks");
-
-        const fetchAccessToken = async () => {
-            console.log("Fetching access token");
-            const req = await axios.post(`${SERVER_URL}/auth/refresh-token`, {}, {
-                withCredentials: true
-            })
-            if (req.data.error) {
-                return;
-            }
-            if (req.data.accessToken) {
-                setAccessToken(req.data.accessToken);
-                setIsAuth(true);
-                return
-            }
-            setIsAuth(false);
-        }
-
-        // fetchAccessToken();
-        //
-
-        const cmdListener = (e: KeyboardEvent) => {
-            if (e.key === "/") {
-                searchRef.current?.focus();
-            }
-            if (e.key === "Escape") {
-                setSearchActive(false);
-                searchRef.current?.blur();
-            }
-        }
-
-
-        window.addEventListener("keyup", cmdListener);
-
-        return () => {
-            window.removeEventListener("keyup", cmdListener);
-        }
-
-    }, [])
+    }, []);
 
     return (
-        <div className="h-full w-[95%] xl:w-[1280px] 2xl:w-[1538px]">
-            <div className="h-full grid grid-cols-4 text-white font-white w-full">
-                <Navbar />
-                <div className="border-l border-r border-dark-gray col-span-2 h-full">
-                    <UrlList className="col-span-2 h-full" />
-                </div>
-                <div className="p-3 ">
-                    <Search {...{ searchRef }} />
+        <>
+            <KeyListener {...{ searchRef }} />
+            <BookmarkEditModal />
+            <AuthModal />
+            <div className="h-full w-[95%] xl:w-[1280px] 2xl:w-[1538px]">
+                <div className="h-full grid grid-cols-4 text-white font-white w-full">
+                    {/* left */}
+                    <Navbar />
+                    {/* middle */}
+                    <div
+                        className={`border-x border-dark-gray col-span-2 h-full`}
+                    >
+                        <MidPanel />
+                    </div>
+                    {/* right */}
+                    <div className="p-4">
+                        <Input {...{ searchRef }} />
+                    </div>
                 </div>
             </div>
-        </div>
-    )
-}
+        </>
+    );
+};
 
-export default App
+export default App;

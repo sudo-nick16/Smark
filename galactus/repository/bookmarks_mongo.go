@@ -72,6 +72,23 @@ func (b *BookmarksRepo) UpdateBookmarkUrl(url, title string, uid primitive.Objec
 	return nil
 }
 
+func (b *BookmarksRepo) UpdateBookmark(url, title, oldTitle string, uid primitive.ObjectID) error {
+	_, err := b.coll.UpdateOne(context.TODO(), bson.M{
+		"userId": uid,
+		"title":  oldTitle,
+	}, bson.M{
+		"$set": bson.M{
+			"url": url,
+			"title": title,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
 func (b *BookmarksRepo) UpdateBookmarkTitle(newTitle, oldTitle string, uid primitive.ObjectID) error {
 	_, err := b.coll.UpdateOne(context.TODO(), bson.M{
 		"userId": uid,

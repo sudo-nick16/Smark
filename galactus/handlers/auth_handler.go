@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mitchellh/mapstructure"
 	"github.com/sudo-nick16/smark/galactus/repository"
 	"github.com/sudo-nick16/smark/galactus/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -52,7 +53,7 @@ func GoogleAuthflowHandler(config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		googleOauthUrl := GetGoogleOauthUrl(&config.GoogleConfig)
 		log.Printf("Google auth url: %v", googleOauthUrl)
-		err := c.Redirect(googleOauthUrl)
+		err := c.Redirect(googleOauthUrl, fiber.StatusTemporaryRedirect)
 		if err != nil {
 			return err
 		}
@@ -63,7 +64,7 @@ func GoogleAuthflowHandler(config *types.Config) fiber.Handler {
 func RefreshTokenHandler(config *types.Config, userRepo *repository.UserRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tokenStr := c.Cookies("smark", "")
-		log.Printf("token-string: %v\n", tokenStr)
+		log.Printf("token string: %v\n", tokenStr)
 		if tokenStr == "" {
 			return fiber.NewError(fiber.StatusUnauthorized, "no token provided")
 		}
@@ -213,7 +214,116 @@ func GoogleCallbackHandler(config *types.Config, userRepo *repository.UserRepo) 
 			HTTPOnly: true,
 		})
 		// fmt.Printf("Token struct from google: %v\nClaims: %v", t, t.Claims)
-		c.Redirect("/")
+		c.Redirect(config.ClientUrl)
 		return nil
+	}
+}
+
+func ChromeAuthHandler(config *types.Config, userRepo *repository.UserRepo) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		log.Print("Chrome auth")
+
+		cookie := c.Cookies("smark")
+		log.Printf("cookie: %v\n", cookie)
+
+		token := c.Query("token", "")
+		if token == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "no code provided",
+			})
+		}
+		log.Printf("token: %v\n", token)
+
+		req, err := http.NewRequest(
+			"GET",
+			fmt.Sprintf("https://www.googleapis.com/oauth2/v3/userinfo?access_token=%s", token),
+			nil)
+		if err != nil {
+			return err
+		}
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		client := http.Client{
+			Timeout: time.Second * 30,
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if res.StatusCode != http.StatusOK {
+			return errors.New("invalid token")
+		}
+
+		var resBody bytes.Buffer
+		_, err = resBody.ReadFrom(res.Body)
+		if err != nil {
+			return err
+		}
+
+		var GooglePayload map[string]interface{}
+		err = json.Unmarshal(resBody.Bytes(), &GooglePayload)
+		if err != nil {
+			return err
+		}
+
+		var user struct {
+			Email string `json:"email"`
+			Name  string `json:"name"`
+			Img   string `json:"picture"`
+		}
+
+		mapstructure.Decode(GooglePayload, &user)
+
+		usr, _ := userRepo.GetUserByEmail(user.Email)
+		if usr == nil {
+			usr = &types.User{
+				Email:        user.Email,
+				Name:         user.Name,
+				Img:          user.Img,
+				TokenVersion: 0,
+			}
+			_, err = userRepo.CreateUser(usr)
+		}
+
+		log.Printf("user: %v\n", usr)
+
+		refreshToken, err := CreateToken(&types.AuthTokenClaims{
+			UserId: usr.Id,
+			// Username:     usr.UserName,
+			TokenVersion: usr.TokenVersion,
+			Exp:          time.Now().Add(time.Hour * 24 * 7).Unix(),
+		}, config.RefreshKey)
+
+		log.Printf("refreshToken: %v\n", refreshToken)
+
+		if err != nil {
+			log.Println("error while creating refresh token: ", err)
+			return err
+		}
+
+		c.Cookie(&fiber.Cookie{
+			Name:     "smark",
+			Value:    refreshToken,
+			Secure:   true,
+			SameSite: "None",
+			Expires:  time.Now().Add(time.Hour * 24 * 7),
+			HTTPOnly: true,
+		})
+
+		return c.JSON(fiber.Map{
+			"msg": "user authenticated",
+		})
+		// fmt.Printf("Token struct from google: %v\nClaims: %v", t, t.Claims)
+	}
+}
+
+func Logout() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		c.ClearCookie("smark")
+		return c.JSON(fiber.Map{
+			"msg": "user logged out",
+		})
 	}
 }

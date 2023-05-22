@@ -27,11 +27,12 @@ type BookmarkListWithChildren struct {
 }
 
 type Bookmark struct {
-	Id     string             `json:"_id,omitempty" bson:"_id,omitempty"`
-	Title  string             `json:"title,omitempty" bson:"title,omitempty"`
-	Url    string             `json:"url,omitempty" bson:"url,omitempty"`
-	ListId primitive.ObjectID `json:"listId,omitempty" bson:"listId,omitempty"`
-	UserId primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
+	Id        string             `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title     string             `json:"title,omitempty" bson:"title,omitempty"`
+	Url       string             `json:"url,omitempty" bson:"url,omitempty"`
+	Img       string             `json:"img,omitempty" bson:"img,omitempty"`
+	ListTitle string             `json:"listTitle,omitempty" bson:"listTitle,omitempty"`
+	UserId    primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
 }
 
 type AuthTokenClaims struct {
@@ -46,6 +47,7 @@ type Config struct {
 	DbUrl        string
 	AccessKey    string
 	RefreshKey   string
+	ClientUrl    string
 	GoogleConfig GoogleConfig
 }
 
@@ -63,6 +65,7 @@ const (
 	CreateBookmarkEvent       = "create_bookmark"
 	UpdateBookmarkTitleEvent  = "update_title"
 	UpdateBookmarkUrlEvent    = "update_url"
+	UpdateBookmarkEvent       = "update"
 	DeleteBookmarkEvent       = "delete_bookmark"
 )
 

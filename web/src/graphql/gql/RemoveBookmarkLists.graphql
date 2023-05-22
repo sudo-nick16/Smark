@@ -1,3 +1,0 @@
-mutation RemoveBookmarkLists($listIds: [String!]!) {
-  removeBookmarkLists(listIds: $listIds)
-}

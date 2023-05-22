@@ -1,25 +1,15 @@
-import { createHashRouter, RouterProvider } from 'react-router-dom';
-import Main from './Main';
+import { Provider } from 'react-redux';
+import { HashRouter } from 'react-router-dom';
+import App from '../App';
+import store from '../store'
 
 const Router = () => {
-    const router = createHashRouter([
-        {
-            path: "",
-            element: <Main />
-        },
-        {
-            path: "/",
-            element: <Main />
-        },
-        {
-            path: "/login",
-            element: <Main />
-            // element: <Login />
-        },
-    ])
-
     return (
-        <RouterProvider router={router} />
+        <Provider store={store}>
+            <HashRouter basename='/'>
+                <App />
+            </HashRouter>
+        </Provider >
     )
 }
 

@@ -41,6 +41,8 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 				case types.CreateListEvent:
 					{
 						var bl types.BookmarkList
+						bl.UserId = userId
+						bl.Public = false
 						err := mapstructure.Decode(v.Data, &bl)
 						log.Printf("Create list event data: %v", bl)
 						if err != nil {
@@ -95,6 +97,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 				case types.CreateBookmarkEvent:
 					{
 						var data types.Bookmark
+						data.UserId = userId
 						mapstructure.Decode(v.Data, &data)
 						_, err := bookmarksRepo.CreateBookmark(&data)
 						if err != nil {
@@ -107,6 +110,20 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 						var data struct {
 							OldTitle string `json:"oldTitle"`
 							Title    string `json:"title"`
+						}
+						mapstructure.Decode(v.Data, &data)
+						err := bookmarksRepo.UpdateBookmarkTitle(data.Title, data.OldTitle, userId)
+						if err != nil {
+							return nil, err
+						}
+						break
+					}
+				case types.UpdateBookmarkEvent:
+					{
+						var data struct {
+							OldTitle string `json:"oldTitle"`
+							Title    string `json:"title"`
+							Url    string `json:"url"`
 						}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.UpdateBookmarkTitle(data.Title, data.OldTitle, userId)
