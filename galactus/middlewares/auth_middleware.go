@@ -21,10 +21,11 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 		if tokenFromHeader == "" {
 			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
 		}
-        if len(tokenFromHeader) < 2 {
+        headerParts := strings.Split(tokenFromHeader, " ")
+        if len(headerParts) < 2 {
             return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
         }
-		accessToken := strings.Split(tokenFromHeader, " ")[1]
+		accessToken := headerParts[1]
 		log.Printf("access token: %v\n", accessToken)
 
 		token, err := jwt.Parse(accessToken, func(t *jwt.Token) (interface{}, error) {

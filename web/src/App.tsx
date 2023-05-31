@@ -6,12 +6,13 @@ import {
     logout,
     RootState,
     setAccessToken,
+    setDefaultList,
     setUser,
     useAppDispatch,
 } from "./store/index";
 import { Bookmark, BookmarkListWithChildren } from "./types";
 import useAxios from "./utils/useAxios";
-import { setBookmarksFromStorage } from "./store/asyncActions";
+import { setBookmarks, setBookmarksFromStorage } from "./store/asyncActions";
 import { useSelector } from "react-redux";
 import { getItem, setItem } from "./store/storageApi";
 import Input from "./components/Input";
@@ -21,6 +22,8 @@ import KeyListener from "./components/KeyListener";
 import AuthModal from "./components/AuthModal";
 import BookmarkEditModal from "./components/BookmarkEditModal";
 import { useLocation, useNavigate } from "react-router-dom";
+import SnackBar from "./components/SnackBar";
+import useSnackBarUtils from "./utils/useSnackBar";
 
 type AppProps = {};
 
@@ -41,10 +44,11 @@ const App: React.FC<AppProps> = () => {
     const api = useAxios();
     const location = useLocation();
     const navigate = useNavigate();
+    const { showError, showSuccess } = useSnackBarUtils();
 
     const appDispatch = useAppDispatch();
     const bookmarks = useSelector<RootState, BookmarkListWithChildren[]>(
-        (state) => state.bookmarks
+        (state) => state.bookmarks.bookmarks
     );
 
     console.log({ bookmarks });
@@ -57,7 +61,8 @@ const App: React.FC<AppProps> = () => {
                 new URLSearchParams(location.search)
             );
             const localBookmarks = await getItem<BookmarkListWithChildren[]>(
-                "bookmarks"
+                "bookmarks",
+                []
             );
             const query = params.query;
             if (!query) {
@@ -67,7 +72,13 @@ const App: React.FC<AppProps> = () => {
             if (params.listTitle) {
                 const listTitle = params.listTitle;
                 const bookmark = localBookmarks!
-                    .find((list) => list.title.trim().toLowerCase().indexOf(listTitle.trim().toLowerCase()) !== -1)
+                    .find(
+                        (list) =>
+                            list.title
+                                .trim()
+                                .toLowerCase()
+                                .indexOf(listTitle.trim().toLowerCase()) !== -1
+                    )
                     ?.children.find(
                         (b) =>
                             b.title
@@ -112,11 +123,26 @@ const App: React.FC<AppProps> = () => {
             handleOmniSearch();
         }
 
-        appDispatch(setBookmarksFromStorage());
+        const fetchFromApi = async () => {
+            console.log("fetching");
+            const res = await api.get("/bookmarks");
+            console.log(res);
+            if (res.data.bookmarks) {
+                appDispatch(setBookmarks(res.data.bookmarks));
+                showSuccess("Bookmarks fetched.");
+                return;
+            }
+        };
+
+        if (isChrome()) {
+            appDispatch(setBookmarksFromStorage());
+            showSuccess("Bookmarks synced from local storage.");
+        } else {
+            fetchFromApi();
+        }
 
         const ensureStorage = async (key: string, defaultValue: any) => {
-            const val = await getItem<any>(key);
-            console.log({ val });
+            const val = await getItem<any>(key, defaultValue);
             if (!val) {
                 await setItem(key, defaultValue);
             }
@@ -191,6 +217,13 @@ const App: React.FC<AppProps> = () => {
         };
 
         addStateUpdateListener("bookmarks");
+
+        const setDefaultListAtStartup = async () => {
+            const list = await getItem<string>("defaultList", "Home");
+            appDispatch(setDefaultList(list));
+        };
+
+        setDefaultListAtStartup();
     }, []);
 
     return (
@@ -198,19 +231,19 @@ const App: React.FC<AppProps> = () => {
             <KeyListener {...{ searchRef }} />
             <BookmarkEditModal />
             <AuthModal />
-            <div className="h-full w-[95%] xl:w-[1280px] 2xl:w-[1538px]">
-                <div className="h-full grid grid-cols-4 text-white font-white w-full">
+            <SnackBar />
+            <div className="w-screen mx-auto">
+                <div className="flex text-white font-white w-full max-w-screen">
                     {/* left */}
-                    <Navbar />
+                    <Navbar className="" />
                     {/* middle */}
-                    <div
-                        className={`border-x border-dark-gray col-span-2 h-full`}
-                    >
-                        <MidPanel />
-                    </div>
-                    {/* right */}
-                    <div className="p-4">
-                        <Input {...{ searchRef }} />
+                    <div className="grow flex h-[100dvh] flex-col 2xl:flex-row overflow-hidden">
+                        <MidPanel className="" />
+                        {/* right */}
+                        <Input
+                            {...{ searchRef }}
+                            className="border 2xl:w-[23rem] border-dark-gray 2xl:border-0"
+                        />
                     </div>
                 </div>
             </div>

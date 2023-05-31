@@ -6,11 +6,17 @@ html{
   background-color: #000000;
 }
 
+.section-b {
+  @apply border-x border-dark-gray;
+}
+
 #root {
   font-family: 'Nunito Sans', sans-serif !important;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
+  width: 100%;
+  height: 100dvh;
   margin: 0 auto !important;
   display: flex;
   flex-direction: row;
@@ -29,6 +35,8 @@ html{
 .s-shadow {
     box-shadow: rgb(255 255 255 / 20%) 0px 0px 9px, rgb(255 255 255 / 15%) 0px 0px 3px 1px;
 }
+
+ 
 
  
 *::-webkit-scrollbar {
@@ -64,9 +72,10 @@ body {
 /*   } */
 /* } */
 
+
 @media screen and (min-width: 1028px) {
     html {
-        font-size: 1.2rem;
+        font-size: 1.14rem;
     }
 }
 

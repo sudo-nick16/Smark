@@ -212,7 +212,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 async function addBookmark(bookmark: Bookmark) {
-    const defaultList = (await chrome.storage.local.get("defaultList"))[
+    let defaultList = (await chrome.storage.local.get("defaultList"))[
         "defaultList"
     ] as string;
     chrome.storage.local.get(["smark_events"], async (data) => {
@@ -230,7 +230,8 @@ async function addBookmark(bookmark: Bookmark) {
             smark_events: [...data.smark_events, createBookmarkEvent],
         });
     });
-    chrome.storage.local.get(["bookmarks"], async (data) => {
+    // @ts-ignore
+    chrome.storage.local.get(["bookmarks"], async (data: { bookmarks: BookmarkListWithChildren[] }) => {
         if (data.bookmarks.length === 0) {
             await chrome.storage.local.set({
                 bookmarks: [
@@ -244,7 +245,11 @@ async function addBookmark(bookmark: Bookmark) {
             });
             return;
         }
+        if (!data.bookmarks.find(l => l.title === defaultList)) {
+            defaultList = "Home"
+        }
         data.bookmarks.map((list: BookmarkListWithChildren) => {
+            console.log(list);
             if (list.title === defaultList) {
                 list.children.push(bookmark);
             }

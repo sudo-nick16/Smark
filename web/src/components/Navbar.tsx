@@ -2,11 +2,13 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import smark from "../assets/smark.png";
+import sideBar from "../assets/sidebar.png";
 import {
     RootState,
     setCurrentList,
     setInput,
     setInputMode,
+    toggleSideBar,
     useAppDispatch,
 } from "../store/index";
 import { BookmarkList } from "../types";
@@ -23,9 +25,10 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
     const input = useSelector<RootState, RootState["inputInfo"]>(
         (state) => state.inputInfo
     );
-    const bookmarkList = useSelector<RootState, RootState["bookmarks"]>(
-        (state) => state.bookmarks
-    );
+    const bookmarkList = useSelector<
+        RootState,
+        RootState["bookmarks"]["bookmarks"]
+    >((state) => state.bookmarks.bookmarks);
     console.log({ bookmarkList });
     const currentList = useSelector<RootState, RootState["currentList"]>(
         (state) => state.currentList
@@ -34,18 +37,36 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
     const handleClick = (ele: BookmarkList) => {
         appDispatch(setCurrentList(ele.title));
         appDispatch(setInput({ ...input, currentValue: "", mode: "" }));
+        appDispatch(toggleSideBar());
         if (location.pathname !== "/") {
             console.log("navigating to /");
             navigate("/");
         }
     };
 
+    const visible = useSelector<RootState, boolean>(
+        (state) => state.modalBars.sideBar
+    );
+
     return (
-        <div className={`h-screen px-4 flex flex-col ${className}`}>
-            <div className="mt-4 ml-4" onClick={() => navigate("/")}>
+        <div
+            className={`h-[100dvh] w-[20rem] min-w-[20rem] flex flex-col fixed bg-black z-10 shadow-xl transition-all duration-100 shadow-dark-gray ${
+                !visible ? "-translate-x-full" : ""
+            } lg:translate-x-0 lg:shadow-none lg:static ${className}`}
+        >
+            <div
+                className="ml-4 h-[4.5rem] flex px-4 items-center justify-between"
+                onClick={() => navigate("/")}
+            >
                 <img src={smark} alt="smark" className="h-10 w-auto" />
+                <img
+                    src={sideBar}
+                    alt="delete"
+                    className="h-8 w-8 mr-2 hover:opacity-90 cursor-pointer lg:hidden"
+                    onClick={() => appDispatch(toggleSideBar())}
+                />
             </div>
-            <div className="mt-8 w-full h-full max-h-full overflow-y-auto flex flex-col">
+            <div className="mt-2 py-4 px-4 grow w-full max-h-full overflow-y-auto flex flex-col">
                 {(input.mode === "sl"
                     ? bookmarkList.filter(
                           (e) =>
@@ -62,9 +83,9 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                         <div
                             onClick={() => handleClick(ele)}
                             key={i}
-                            className={`flex items-center py-2 px-4 2xl:py-3
+                            className={`flex !text-lg items-center py-2 px-4 2xl:py-[10px]
                                 ${ele.title === currentList && "bg-light-gray"}
-                                text-[1rem] transition-all duration-75 bg-opacity-50
+                               transition-all duration-75 bg-opacity-50
                                 w-full hover:bg-dark-gray hover:bg-opacity-70 
                                 hover:cursor-pointer rounded-3xl font-semibold`}
                         >
@@ -73,9 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                     );
                 })}
             </div>
-            <div className="my-4">
-                <Profile />
-            </div>
+            <Profile />
         </div>
     );
 };

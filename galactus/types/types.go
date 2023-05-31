@@ -23,7 +23,7 @@ type BookmarkListWithChildren struct {
 	Title     string             `json:"title,omitempty" bson:"title,omitempty"`
 	Public    bool               `json:"public" bson:"public"`
 	UserId    primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
-	Bookmarks []*Bookmark        `json:"bookmarks,omitempty" bson:"bookmarks,omitempty"`
+	Children *[]Bookmark        `json:"children" bson:"children"`
 }
 
 type Bookmark struct {

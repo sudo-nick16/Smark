@@ -321,7 +321,15 @@ func ChromeAuthHandler(config *types.Config, userRepo *repository.UserRepo) fibe
 
 func Logout() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.ClearCookie("smark")
+		log.Print("Logout")
+		c.Cookie(&fiber.Cookie{
+			Name:     "smark",
+			Value:    "",
+			Secure:   true,
+			SameSite: "None",
+			Expires:  time.Now(),
+			HTTPOnly: true,
+		})
 		return c.JSON(fiber.Map{
 			"msg": "user logged out",
 		})

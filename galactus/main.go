@@ -60,6 +60,7 @@ func main() {
 
 	app.Post("/sync", middlewares.AuthMiddleware(config), handlers.SyncBookmarks(userRepo, bookmarkRepo))
 
+	app.Get("/bookmarks", middlewares.AuthMiddleware(config), handlers.GetBookmarks(bookmarkRepo))
 
 	app.Get("/me", middlewares.AuthMiddleware(config), handlers.GetMe(userRepo))
 

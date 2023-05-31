@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/sudo-nick16/smark/galactus/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,14 +28,10 @@ func NewBookmarkRepo(client *mongo.Client) *BookmarksRepo {
 }
 
 func (b *BookmarksRepo) DeleteBookmark(listTitle, bookmarkTitle string, uid primitive.ObjectID) error {
-	bl, err := b.GetBookmarkListByTitle(listTitle, uid)
-	if err != nil {
-		return err
-	}
-	_, err = b.coll.DeleteOne(context.TODO(), bson.M{
-		"userId": uid,
-		"title":  bookmarkTitle,
-		"listId": bl.Id,
+	_, err := b.coll.DeleteMany(context.TODO(), bson.M{
+		"userId":    uid,
+		"title":     bookmarkTitle,
+		"listTitle": listTitle,
 	})
 	if err != nil {
 		return err
@@ -72,13 +69,14 @@ func (b *BookmarksRepo) UpdateBookmarkUrl(url, title string, uid primitive.Objec
 	return nil
 }
 
-func (b *BookmarksRepo) UpdateBookmark(url, title, oldTitle string, uid primitive.ObjectID) error {
+func (b *BookmarksRepo) UpdateBookmark(url, title, oldTitle string, uid primitive.ObjectID, listTitle string) error {
 	_, err := b.coll.UpdateOne(context.TODO(), bson.M{
-		"userId": uid,
-		"title":  oldTitle,
+		"userId":    uid,
+		"listTitle": listTitle,
+		"title":     oldTitle,
 	}, bson.M{
 		"$set": bson.M{
-			"url": url,
+			"url":   url,
 			"title": title,
 		},
 	})
@@ -87,7 +85,6 @@ func (b *BookmarksRepo) UpdateBookmark(url, title, oldTitle string, uid primitiv
 	}
 	return nil
 }
-
 
 func (b *BookmarksRepo) UpdateBookmarkTitle(newTitle, oldTitle string, uid primitive.ObjectID) error {
 	_, err := b.coll.UpdateOne(context.TODO(), bson.M{
@@ -153,7 +150,7 @@ func (b *BookmarksRepo) CreateBookmark(bm *types.Bookmark) (*types.Bookmark, err
 	return bm, nil
 }
 
-func (b *BookmarksRepo) GetBookmarks(uid string) (*[]types.BookmarkListWithChildren, error) {
+func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkListWithChildren, error) {
 	listCur, err := b.listColl.Find(context.TODO(), bson.M{
 		"userId": uid,
 	})
@@ -167,21 +164,29 @@ func (b *BookmarksRepo) GetBookmarks(uid string) (*[]types.BookmarkListWithChild
 		if err != nil {
 			return nil, err
 		}
+		log.Printf("listTitle: %v, userId: %v", list.Title, uid)
+
 		bmCur, err := b.coll.Find(context.TODO(), bson.M{
-			"listId": list.Id,
-			"userId": uid,
+			"listTitle": list.Title,
+			"userId":    uid,
 		})
+
 		if err != nil {
 			return nil, err
 		}
-		for bmCur.Next(context.Background()) {
-			var bm types.Bookmark
-			err := bmCur.Decode(&bm)
-			if err != nil {
-				return nil, err
-			}
-			list.Bookmarks = append(list.Bookmarks, &bm)
+
+
+		var bms []types.Bookmark
+
+		err = bmCur.All(context.Background(), &bms)
+		if err != nil {
+			return nil, err
 		}
+
+        list.Children = &bms
+
+        log.Printf("list children: %v", list.Children)
+
 		bookmarks = append(bookmarks, list)
 	}
 	return &bookmarks, nil
@@ -201,7 +206,7 @@ func (b *BookmarksRepo) GetBookmarkListById(id string) (*types.BookmarkList, err
 
 func (b *BookmarksRepo) GetBookmarkListByTitle(title string, uid primitive.ObjectID) (*types.BookmarkList, error) {
 	res := b.listColl.FindOne(context.TODO(), bson.M{
-        "userId": uid,
+		"userId": uid,
 		"title":  title,
 	})
 	var lists types.BookmarkList

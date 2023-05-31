@@ -50,15 +50,15 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 						}
 						bl.UserId = userId
 						list, _ := bookmarksRepo.GetBookmarkListByTitle(bl.Title, userId)
-						if list != nil {
-							// continue
-							log.Printf("list already exists: %v", bl.Title)
-							return nil, fiber.NewError(fiber.StatusBadRequest, "list already exists")
+						if list == nil {
+							_, err = bookmarksRepo.CreateBookmarkList(&bl)
+							if err != nil {
+								return nil, failedSyncError
+							}
 						}
-						_, err = bookmarksRepo.CreateBookmarkList(&bl)
-						if err != nil {
-							return nil, failedSyncError
-						}
+						// continue
+						log.Printf("list already exists: %v", bl.Title)
+						// return nil, fiber.NewError(fiber.StatusBadRequest, "list already exists")
 						break
 					}
 				case types.UpdateListTitleEvent:
@@ -123,10 +123,11 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 						var data struct {
 							OldTitle string `json:"oldTitle"`
 							Title    string `json:"title"`
-							Url    string `json:"url"`
+							listTitle    string `json:"listTitle"`
+							Url      string `json:"url"`
 						}
 						mapstructure.Decode(v.Data, &data)
-						err := bookmarksRepo.UpdateBookmarkTitle(data.Title, data.OldTitle, userId)
+						err := bookmarksRepo.UpdateBookmark(data.Url, data.Title, data.OldTitle, userId, data.listTitle)
 						if err != nil {
 							return nil, err
 						}
@@ -179,5 +180,25 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 		return c.JSON(fiber.Map{
 			"message": "synced successfully",
 		})
+	}
+}
+
+func GetBookmarks(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authCtx := c.Locals("AuthContext").(*types.AuthTokenClaims)
+		if authCtx == nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+		}
+		userId := authCtx.UserId
+		bookmarks, err := bookmarksRepo.GetBookmarks(userId)
+		log.Printf("bookmarks: %v", bookmarks)
+		if err != nil {
+			return fiber.NewError(fiber.StatusOK, "no bookmarks found")
+		}
+		return c.JSON(
+			fiber.Map{
+				"bookmarks": bookmarks,
+			},
+		)
 	}
 }

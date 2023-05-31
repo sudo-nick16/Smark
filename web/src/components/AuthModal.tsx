@@ -12,7 +12,7 @@ type AuthModalProps = {}
 const AuthModal: React.FC<AuthModalProps> = () => {
     const myAxios = useAxios();
 
-    const show = useSelector((state: RootState) => state.authModal.isOpen);
+    const show = useSelector((state: RootState) => state.modalBars.authModal);
     console.log({show});
     const authState = useSelector<RootState, RootState['auth']>((state: RootState) => state.auth);
 
@@ -44,12 +44,12 @@ const AuthModal: React.FC<AuthModalProps> = () => {
                 if (!req.data.error) {
                     console.log(req.data);
                 }
-                toggle();
             });
             const res = await myAxios.get("/me");
             if (res.data.user) {
                 appDispatch(setUser(res.data.user));
             }
+            toggle();
         } catch (err) {
             console.log("error while fetching token in extension: ", err);
             return;
@@ -58,7 +58,7 @@ const AuthModal: React.FC<AuthModalProps> = () => {
     return (
         <>
             {show &&
-                <div className='fixed z-10 backdrop-blur-sm h-screen w-full flex items-center justify-center'>
+                <div className='fixed z-10 backdrop-blur-sm h-[100dvh] w-full flex items-center justify-center'>
                     <div className='bg-black px-14 py-8 rounded-xl s-shadow flex flex-col items-center justify-center relative'>
                         <img
                             src={close} alt="close" className='h-4 w-4 absolute top-3 left-3 cursor-pointer'
