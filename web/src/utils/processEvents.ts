@@ -9,13 +9,15 @@ export const processEvents = async (bookmarks: BookmarkListWithChildren[]) => {
         const data = event.data;
         bookmarks.forEach((l) => {
           if (l.title.trim() === data.listTitle.trim()) {
-            l.children.push({
-              title: data.title,
-              url: data.url,
-              img: data.img,
-              listTitle: data.listTitle,
-              userId: "",
-            });
+            if (!l.children.find((b) => b.title.trim() === data.title.trim())) {
+              l.children.push({
+                title: data.title,
+                url: data.url,
+                img: data.img,
+                listTitle: data.listTitle,
+                userId: "",
+              });
+            }
           }
         });
         break;
@@ -46,8 +48,12 @@ export const processEvents = async (bookmarks: BookmarkListWithChildren[]) => {
         break;
       }
       case "create_list": {
+        const data = event.data;
+        if (bookmarks.find((l) => l.title.trim() === data.title.trim())) {
+          break;
+        }
         bookmarks.push({
-          title: event.data.title,
+          title: data.title,
           children: [],
           public: false,
           userId: "",
