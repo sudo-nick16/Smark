@@ -2,7 +2,9 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import Account from "./Account";
 import BookmarkList from "./BookmarkList";
+import ForeignList from "./ForeignList";
 import Protected from "./Protected";
+import Settings from "./Settings";
 
 type UrlListProps = {
     className?: string;
@@ -26,9 +28,14 @@ const MidPanel: React.FC<UrlListProps> = ({ className = "" }) => {
                 }
             />
             <Route
+                path="/settings"
+                id="settings"
+                element={<Settings className={`section-b ${className}`} />}
+            />
+            <Route
                 path="/:userId/:listId"
                 id="account"
-                element={<BookmarkList className={`section-b ${className}`} />}
+                element={<ForeignList className={`section-b ${className}`} />}
             />
         </Routes>
     );

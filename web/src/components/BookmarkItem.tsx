@@ -29,6 +29,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
     const deleteHandler = () => {
         appDispatch(deleteBookmark({ title, listTitle }));
     };
+     
     return (
         <div
             draggable

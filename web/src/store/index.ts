@@ -2,7 +2,6 @@ import {
   configureStore,
   createAsyncThunk,
   createSlice,
-  current,
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
@@ -15,8 +14,6 @@ import {
   deleteList,
   setBookmarks,
   setBookmarksFromStorage,
-  updateBookmarkTitle,
-  updateBookmarkUrl,
   updateListTitle,
   updateListVisibility,
 } from "./asyncActions";
@@ -36,7 +33,6 @@ export const bookmarks = createSlice({
     });
     builder.addCase(setBookmarks.fulfilled, (state, action) => {
       state.bookmarks = action.payload;
-      state.events = [];
     });
     builder.addCase(clearSmarkEvents.fulfilled, (state) => {
       state.events = [];
@@ -61,14 +57,6 @@ export const bookmarks = createSlice({
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
-    builder.addCase(updateBookmarkTitle.fulfilled, (state, action) => {
-      state.bookmarks = action.payload.bookmarks;
-      state.events = action.payload.events;
-    });
-    builder.addCase(updateBookmarkUrl.fulfilled, (state, action) => {
-      state.bookmarks = action.payload.bookmarks;
-      state.events = action.payload.events;
-    });
     builder.addCase(deleteBookmark.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
@@ -80,7 +68,7 @@ export const currentList = createSlice({
   name: "currentList",
   initialState: "Home",
   reducers: {
-    setCurrentList: (state, action: PayloadAction<string>) => {
+    setCurrentList: (_, action: PayloadAction<string>) => {
       return action.payload;
     },
   },
@@ -151,19 +139,39 @@ export const modalBars = createSlice({
   },
   reducers: {
     toggleAuthModal: (state) => {
-      console.log(current(state));
       state.authModal = !state.authModal;
-      console.log(current(state));
     },
     toggleSideBar: (state) => {
-      console.log(current(state));
       state.sideBar = !state.sideBar;
-      console.log(current(state));
+    },
+    closeAllBarsAndModals: (state) => {
+      state.authModal = false;
+      state.sideBar = false;
+    },
+    openSideBar: (state) => {
+      state.sideBar = true;
+    },
+    closeSideBar: (state) => {
+      state.sideBar = false;
+    },
+    openAuthModal: (state) => {
+      state.authModal = true;
+    },
+    closeAuthModal: (state) => {
+      state.authModal = false;
     },
   },
 });
 
-export const { toggleAuthModal, toggleSideBar } = modalBars.actions;
+export const {
+  toggleAuthModal,
+  toggleSideBar,
+  closeSideBar,
+  closeAuthModal,
+  openAuthModal,
+  openSideBar,
+  closeAllBarsAndModals,
+} = modalBars.actions;
 
 type InputInfo = {
   mode: string;

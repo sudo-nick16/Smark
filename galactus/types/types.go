@@ -48,6 +48,7 @@ type Config struct {
 	AccessKey    string
 	RefreshKey   string
 	ClientUrl    string
+	ServerUrl    string
 	GoogleConfig GoogleConfig
 }
 
@@ -59,13 +60,13 @@ type GoogleConfig struct {
 
 const (
 	CreateListEvent           = "create_list"
-	UpdateListTitleEvent      = "update_list_title"
-	ChangeListVisibilityEvent = "change_list_visibility"
+	UpdateListTitleEvent      = "update_list"
+	ChangeListVisibilityEvent = "update_list_visibility"
 	DeleteListEvent           = "delete_list"
 	CreateBookmarkEvent       = "create_bookmark"
 	UpdateBookmarkTitleEvent  = "update_title"
 	UpdateBookmarkUrlEvent    = "update_url"
-	UpdateBookmarkEvent       = "update"
+	UpdateBookmarkEvent       = "update_bookmark"
 	DeleteBookmarkEvent       = "delete_bookmark"
 )
 

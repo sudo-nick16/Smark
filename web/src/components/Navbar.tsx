@@ -4,15 +4,17 @@ import { useLocation, useNavigate } from "react-router-dom";
 import smark from "../assets/smark.png";
 import sideBar from "../assets/sidebar.png";
 import {
+    closeSideBar,
     RootState,
     setCurrentList,
     setInput,
-    setInputMode,
     toggleSideBar,
     useAppDispatch,
 } from "../store/index";
 import { BookmarkList } from "../types";
 import Profile from "./Profile";
+import OutsideClickWrapper from "./OutsideClickWrapper";
+import useMediaQuery from "../hooks/useMediaQuery";
 
 type NavbarProps = {
     className?: string;
@@ -48,17 +50,24 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
         (state) => state.modalBars.sideBar
     );
 
+    const matches = useMediaQuery("(max-width: 1024px)");
+
     return (
-        <div
+        <OutsideClickWrapper
+            listenerState={matches && visible}
+            onOutsideClick={() => appDispatch(closeSideBar())}
+            as="div"
             className={`h-[100dvh] w-[20rem] min-w-[20rem] flex flex-col fixed bg-black z-10 shadow-xl transition-all duration-100 shadow-dark-gray ${
                 !visible ? "-translate-x-full" : ""
             } lg:translate-x-0 lg:shadow-none lg:static ${className}`}
         >
-            <div
-                className="ml-4 h-[4.5rem] flex px-4 items-center justify-between"
-                onClick={() => navigate("/")}
-            >
-                <img src={smark} alt="smark" className="h-10 w-auto" />
+            <div className="ml-4 h-[4.5rem] flex px-4 items-center justify-between">
+                <img
+                    onClick={() => navigate("/")}
+                    src={smark}
+                    alt="smark"
+                    className="h-10 w-auto cursor-pointer"
+                />
                 <img
                     src={sideBar}
                     alt="delete"
@@ -95,7 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                 })}
             </div>
             <Profile />
-        </div>
+        </OutsideClickWrapper>
     );
 };
 

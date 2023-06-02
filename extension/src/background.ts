@@ -29,8 +29,10 @@ type BookmarkListWithChildren = {
     children: Bookmark[];
 };
 
-// const SERVER = "";
+const BASE_SERVER_URL = "http://localhost:42069";
 const MAX_RETRIES_COUNT = 5;
+const EXTENSION_URL =
+    "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/";
 const HEART_BEAT_PERIOD = 1000 * 60;
 const QUERY_MAP = new Map([
     ["l", "list"],
@@ -51,32 +53,82 @@ async function getCurrentTab() {
     return tab;
 }
 
-chrome.omnibox.onInputEntered.addListener((text) => {
+async function handleOmniBookmarkWithList(listTitle: string, query: string) {
+    const bookmarks = (await chrome.storage.local.get("bookmarks"))[
+        "bookmarks"
+    ] as BookmarkListWithChildren[];
+    const bookmark = bookmarks
+        .find(
+            (list) =>
+                list.title
+                    .trim()
+                    .toLowerCase()
+                    .indexOf(listTitle.trim().toLowerCase()) !== -1
+        )
+        ?.children.find(
+            (bm) =>
+                bm.title
+                    .trim()
+                    .toLowerCase()
+                    .indexOf(query.trim().toLowerCase()) !== -1 ||
+                bm.url
+                    .trim()
+                    .toLowerCase()
+                    .indexOf(query.trim().toLowerCase()) !== -1
+        );
+    console.log("list", { bookmark });
+    if (bookmark) {
+        await chrome.tabs.update({ url: bookmark.url });
+        return;
+    }
+    handleOmniNoBookmark();
+}
+
+async function handleOmniBookmark(query: string) {
+    const bookmarks = (await chrome.storage.local.get("bookmarks"))[
+        "bookmarks"
+    ] as BookmarkListWithChildren[];
+    console.log({ bookmarks });
+    console.log("flat list", bookmarks.map((list) => list.children).flat());
+    const bookmark = bookmarks
+        .map((list) => list.children)
+        .flat()
+        .find(
+            (bm) =>
+                bm.title
+                    .trim()
+                    .toLowerCase()
+                    .indexOf(query.trim().toLowerCase()) !== -1 ||
+                bm.url
+                    .trim()
+                    .toLowerCase()
+                    .indexOf(query.trim().toLowerCase()) !== -1
+        );
+    console.log("only", { bookmark });
+    if (bookmark) {
+        await chrome.tabs.update({ url: bookmark.url });
+        return;
+    }
+    handleOmniNoBookmark();
+}
+
+async function handleOmniNoBookmark() {
+    await chrome.tabs.update({ url: EXTENSION_URL });
+}
+
+chrome.omnibox.onInputEntered.addListener(async (text) => {
+    if (!text.trim()){
+        handleOmniNoBookmark();
+        return;
+    }
     const args = text.split(";");
     if (args.length > 1) {
         const listTitle = args[0];
         const query = args[1];
-        const newURL = `chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/search?query=${encodeURIComponent(
-            query
-        )}&listTitle=${listTitle}`;
-        chrome.tabs.create({ url: newURL });
+        await handleOmniBookmarkWithList(listTitle, query);
     } else if (args.length === 1) {
-        const newURL = `chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/search?query=${encodeURIComponent(
-            args[0]
-        )}`;
-        chrome.tabs.create({ url: newURL });
+        await handleOmniBookmark(args[0]);
     }
-    // const args = text.split(/ (.*)/s);
-    // const type =
-    //     args[0].length === 1 && Array.from(QUERY_MAP.keys()).includes(args[0])
-    //         ? QUERY_MAP.get(args[0])
-    //         : "";
-    // const query = type ? args[1] : text;
-    //
-    // var newURL = `chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/search?query=${encodeURIComponent(
-    //     query
-    // )}${type ? `&type=${type}` : ""}&nav=true`;
-    // chrome.tabs.create({ url: newURL });
 });
 
 async function fetchAccessToken() {
@@ -88,7 +140,7 @@ async function fetchAccessToken() {
     try {
         // if the token is empty, then we need to fetch it
         accessTokenRetries++;
-        const res = await fetch("http://localhost:42069/refresh-token", {
+        const res = await fetch(BASE_SERVER_URL + "/refresh-token", {
             method: "POST",
             credentials: "include",
         });
@@ -126,7 +178,7 @@ async function syncBookmarks() {
             ((await chrome.storage.local.get("smark_events"))[
                 "smark_events"
             ] as SyncEvent[]) || [];
-        const res = await fetch("http://localhost:42069/sync", {
+        const res = await fetch(BASE_SERVER_URL + "/sync", {
             method: "POST",
             credentials: "include",
             headers: {
@@ -212,59 +264,62 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 async function addBookmark(bookmark: Bookmark) {
-    let defaultList = (await chrome.storage.local.get("defaultList"))[
-        "defaultList"
-    ] as string;
-    chrome.storage.local.get(["smark_events"], async (data) => {
-        const createBookmarkEvent = {
-            type: "create_bookmark",
-            data: bookmark,
-        };
-        if (!data.smark_events) {
-            await chrome.storage.local.set({
-                smark_events: [createBookmarkEvent],
-            });
-            return;
-        }
+    const smarkEvents = (await chrome.storage.local.get("smark_events"))[
+        "smark_events"
+    ] as SyncEvent[];
+    const createBookmarkEvent = {
+        type: "create_bookmark",
+        data: bookmark,
+    };
+    if (!smarkEvents) {
         await chrome.storage.local.set({
-            smark_events: [...data.smark_events, createBookmarkEvent],
+            smark_events: [createBookmarkEvent],
         });
+        return;
+    }
+    smarkEvents.push(createBookmarkEvent);
+    await chrome.storage.local.set({
+        smark_events: smarkEvents,
     });
-    // @ts-ignore
-    chrome.storage.local.get(["bookmarks"], async (data: { bookmarks: BookmarkListWithChildren[] }) => {
-        if (data.bookmarks.length === 0) {
-            await chrome.storage.local.set({
-                bookmarks: [
-                    {
-                        title: "Home",
-                        public: false,
-                        userId: "",
-                        children: [bookmark],
-                    },
-                ],
-            });
-            return;
-        }
-        if (!data.bookmarks.find(l => l.title === defaultList)) {
-            defaultList = "Home"
-        }
-        data.bookmarks.map((list: BookmarkListWithChildren) => {
-            console.log(list);
-            if (list.title === defaultList) {
-                list.children.push(bookmark);
-            }
-            return list;
-        });
+
+    const bookmarks = (await chrome.storage.local.get("bookmarks"))[
+        "bookmarks"
+    ] as BookmarkListWithChildren[];
+    if (!bookmarks) {
         await chrome.storage.local.set({
-            bookmarks: data.bookmarks,
+            bookmarks: [
+                {
+                    title: "Home",
+                    public: false,
+                    userId: "",
+                    children: [bookmark],
+                },
+            ],
         });
+        return;
+    }
+    if (!bookmarks.find((l) => l.title === bookmark.listTitle)) {
+        bookmark.listTitle = "Home";
+    }
+    bookmarks.forEach((list) => {
+        if (list.title === bookmark.listTitle) {
+            list.children.push(bookmark);
+        }
+        return list;
+    });
+    await chrome.storage.local.set({
+        bookmarks,
     });
 }
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-    const defaultList = (await chrome.storage.local.get("defaultList"))[
+    let defaultList = (await chrome.storage.local.get("defaultList"))[
         "defaultList"
     ];
+    if (!defaultList) {
+        defaultList = "Home";
+        await chrome.storage.local.set({ defaultList });
+    }
     console.log(info, tab);
     const bookmark = {
         title: tab?.title,
@@ -282,7 +337,7 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         });
         chrome.identity.getAuthToken(
             { interactive: true },
-            async function(token) {
+            async function (token) {
                 console.log(token);
                 const req = await fetch(
                     `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`

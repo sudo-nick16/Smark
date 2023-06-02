@@ -11,6 +11,7 @@ import {
 import { clearSmarkEvents, setBookmarks } from "../store/asyncActions";
 import { getItem, setItem } from "../store/storageApi";
 import useAxios from "../utils/useAxios";
+import settingsIcon from "../assets/settings-gear-icon.png";
 import useSnackBarUtils from "../utils/useSnackBar";
 
 type ProfileProps = {};
@@ -25,7 +26,7 @@ const Tag = ({ onClick, title, className = "" }: TagProps) => {
     return (
         <div
             onClick={onClick}
-            className={`s-shadow cursor-pointer bg-dark-gray font-bold rounded-xl flex justify-center items-center px-2 ${className}`}
+            className={`s-shadow px-4 cursor-pointer bg-dark-gray font-bold rounded-xl flex justify-center items-center w-fit ${className}`}
         >
             {title}
         </div>
@@ -39,6 +40,7 @@ const Profile: React.FC<ProfileProps> = () => {
     const { showError, showSuccess } = useSnackBarUtils();
 
     const selfRef = useRef<HTMLDivElement>(null);
+
     const authState = useSelector<RootState, RootState["auth"]>(
         (state) => state.auth
     );
@@ -72,54 +74,24 @@ const Profile: React.FC<ProfileProps> = () => {
         showError("Couldn't sync");
     };
 
-    const clearLocal = async () => {
-        await setItem("smark_events", []);
-        showSuccess("Synced successfully");
-        console.log("cleared events");
-    };
-
-    const logoutHandler = async () => {
-        const res = await api.post("/logout");
-        console.log(res.data);
-
-        if (!res.data.error) {
-            console.log("logging out ");
-            appDispatch(logout());
-            showSuccess("Logged out successfully");
-            return;
-        }
-        showError("Couldn't logout");
-        console.log("logout failed");
-    };
-
-    const fetchHandler = async () => {
-        console.log("fetching");
-        const res = await api.get("/bookmarks");
-        console.log(res);
-        if (res.data.bookmarks) {
-            appDispatch(setBookmarks(res.data.bookmarks));
-            showSuccess("Fetched successfully");
-            return;
-        }
-    };
 
     return !authState.user ? (
         <div className="py-3 px-4">
             <div
-                className="mb-[4.5rem] lg:mb-0 flex items-center justify-center w-full mt-auto
-    bg-dark-gray opacity-90 hover:opacity-100 cursor-pointer p-2
-    rounded-full font-medium text-base"
+                className="mb-[4.5rem] lg:mb-0 flex items-center justify-center 
+                w-full mt-auto bg-dark-gray opacity-90 hover:opacity-100
+                cursor-pointer p-2 rounded-full font-medium text-base"
                 onClick={toggleModal}
             >
                 Sign in
             </div>
         </div>
     ) : (
-        <div className="py-3 md:py-0 px-4">
+        <div className="py-3 md:py-0 px-4 w-full">
             <div
                 ref={selfRef}
                 className="flex h-[4.5rem] items-center w-full mt-auto px-2
-  mb-[4.5rem] lg:mb-0 overflow-hidden"
+                mb-[4.5rem] lg:mb-0 overflow-hidden"
             >
                 <div className="w-fit mr-3" onClick={goToAccount}>
                     <img
@@ -128,27 +100,36 @@ const Profile: React.FC<ProfileProps> = () => {
                         alt="profile"
                     />
                 </div>
-                <div className="flex flex-col">
-                    <h1 className="font-bold text-sm leading-tight line-clamp-1">
+                <div className="grow flex flex-col px-3">
+                    <h1 className="font-bold text-base leading-tight line-clamp-1 mb-2">
                         {authState.user.name}
                     </h1>
-                    <div className="grid grid-rows-1 grid-cols-3 w-full text-sm mt-2 gap-2">
-                        {
-                            // <div onClick={logoutHandler} className='s-shadow cursor-pointer bg-dark-gray rounded-xl flex justify-center items-center px-2'>
-                            //     Logout
-                            //     </div>
-                        }
-                        <Tag
-                            title={synced ? "synced" : "sync"}
-                            className={`${
-                                synced ? "bg-green-600" : "bg-yellow-600"
-                            }`}
-                            onClick={syncBookmarks}
-                        />
-                        <Tag title="Fetch" onClick={fetchHandler} />
-                        <Tag title="Clear" onClick={clearLocal} />
-                    </div>
+                    {
+                        // <div onClick={logoutHandler} className='s-shadow cursor-pointer bg-dark-gray rounded-xl flex justify-center items-center px-2'>
+                        //     Logout
+                        //     </div>
+                    }
+                    <Tag
+                        title={synced ? "synced" : "sync"}
+                        className={`${
+                            synced ? "bg-green-600" : "bg-yellow-600"
+                        }`}
+                        onClick={syncBookmarks}
+                    />
+                    {
+                        // <Tag title="Fetch" onClick={fetchHandler} />
+                        //     <Tag title="Clear" onClick={clearLocal} />
+                    }
                 </div>
+                <img
+                    onClick={() => {
+                        navigate("/settings");
+                        appDispatch(toggleSideBar());
+                    }}
+                    src={settingsIcon}
+                    alt="settings"
+                    className="w-5 h-5 ml-3 hover:opacity-90 cursor-pointer"
+                />
             </div>
         </div>
     );

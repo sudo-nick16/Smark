@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/sudo-nick16/smark/galactus/repository"
 	"github.com/sudo-nick16/smark/galactus/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -121,13 +123,13 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 				case types.UpdateBookmarkEvent:
 					{
 						var data struct {
-							OldTitle string `json:"oldTitle"`
-							Title    string `json:"title"`
-							listTitle    string `json:"listTitle"`
-							Url      string `json:"url"`
+							OldTitle  string `json:"oldTitle"`
+							Title     string `json:"title"`
+							ListTitle string `json:"listTitle"`
+							Url       string `json:"url"`
 						}
 						mapstructure.Decode(v.Data, &data)
-						err := bookmarksRepo.UpdateBookmark(data.Url, data.Title, data.OldTitle, userId, data.listTitle)
+						err := bookmarksRepo.UpdateBookmark(data.Url, data.Title, data.OldTitle, userId, data.ListTitle)
 						if err != nil {
 							return nil, err
 						}
@@ -202,3 +204,64 @@ func GetBookmarks(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
 		)
 	}
 }
+
+func GetPublicList(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userId := c.Params("userId")
+		bookmarkListId := c.Params("bookmarkListId")
+		if userId == "" || bookmarkListId == "" {
+			return fiber.NewError(fiber.StatusBadRequest, "invalid ids.")
+		}
+		uid, err := primitive.ObjectIDFromHex(userId)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "invalid user id.")
+		}
+		id, err := primitive.ObjectIDFromHex(bookmarkListId)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "invalid bookmark list id.")
+		}
+		bookmarkList, err := bookmarksRepo.GetBookmarkList(id, uid)
+		log.Printf("bookmark list: %v", bookmarkList)
+		if err != nil {
+			return fiber.NewError(fiber.StatusOK, "list not found.")
+		}
+        if !bookmarkList.Public {
+			return fiber.NewError(fiber.StatusOK, "the list is private.")
+        }
+		return c.JSON(
+			fiber.Map{
+				"bookmarkList": bookmarkList,
+			},
+		)
+	}
+}
+
+
+func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authCtx := c.Locals("AuthContext").(*types.AuthTokenClaims)
+		if authCtx == nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+		}
+		userId := authCtx.UserId
+        title := c.Params("title")
+        if title == "" {
+            return fiber.NewError(fiber.StatusBadRequest, "invalid title")
+        }
+		bookmarkList, err := bookmarksRepo.GetBookmarkListByTitle(title, userId)
+		log.Printf("bookmarks: %v", bookmarkList)
+		if err != nil {
+			return fiber.NewError(fiber.StatusOK, "no bookmarks found")
+		}
+        if !bookmarkList.Public {
+			return fiber.NewError(fiber.StatusOK, "the list is not public")
+        }
+        link := fmt.Sprintf("%s/%s/%s", config.ServerUrl, userId, bookmarkList.Id.Hex())
+		return c.JSON(
+			fiber.Map{
+				"shareLink": link,
+			},
+		)
+	}
+}
+

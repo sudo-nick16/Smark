@@ -10,7 +10,7 @@ import useAxios from '../utils/useAxios'
 type AuthModalProps = {}
 
 const AuthModal: React.FC<AuthModalProps> = () => {
-    const myAxios = useAxios();
+    const api = useAxios();
 
     const show = useSelector((state: RootState) => state.modalBars.authModal);
     console.log({show});
@@ -45,7 +45,7 @@ const AuthModal: React.FC<AuthModalProps> = () => {
                     console.log(req.data);
                 }
             });
-            const res = await myAxios.get("/me");
+            const res = await api.get("/me");
             if (res.data.user) {
                 appDispatch(setUser(res.data.user));
             }

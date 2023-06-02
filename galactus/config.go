@@ -19,6 +19,7 @@ func setupConfig() *types.Config {
 		AccessKey:  env.GetEnv("ACCESS_KEY", "neioneio"),
 		RefreshKey: env.GetEnv("REFRESH_KEY", "arstarst"),
 		ClientUrl:  env.GetEnv("CLIENT_URL", "http://localhost:5173"),
+		ServerUrl:  env.GetEnv("SERVER_URL", "http://localhost:42069"),
 		GoogleConfig: types.GoogleConfig{
 			ClientId:     env.GetEnv("GOOGLE_CLIENT_ID", ""),
 			ClientSecret: env.GetEnv("GOOGLE_CLIENT_SECRET", ""),

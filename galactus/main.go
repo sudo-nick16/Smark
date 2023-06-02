@@ -62,6 +62,10 @@ func main() {
 
 	app.Get("/bookmarks", middlewares.AuthMiddleware(config), handlers.GetBookmarks(bookmarkRepo))
 
+	app.Get("/bookmarks/:userId/:bookmarkListId", handlers.GetPublicList(bookmarkRepo))
+
+	app.Get("/bookmarks/share/:title", middlewares.AuthMiddleware(config), handlers.GetShareLink(bookmarkRepo, config))
+
 	app.Get("/me", middlewares.AuthMiddleware(config), handlers.GetMe(userRepo))
 
 	app.Get("/oauth/google", handlers.GoogleAuthflowHandler(config))
@@ -70,7 +74,7 @@ func main() {
 
 	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, userRepo), corsMiddleware)
 
-    app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
+	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
 
 	app.Listen(config.Port)
 }

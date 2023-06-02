@@ -175,8 +175,7 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 			return nil, err
 		}
 
-
-		var bms []types.Bookmark
+        bms := []types.Bookmark{}
 
 		err = bmCur.All(context.Background(), &bms)
 		if err != nil {
@@ -192,7 +191,21 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 	return &bookmarks, nil
 }
 
-func (b *BookmarksRepo) GetBookmarkListById(id string) (*types.BookmarkList, error) {
+func (b *BookmarksRepo) GetBookmarkList(id, uid primitive.ObjectID) (*types.BookmarkList, error) {
+	res := b.listColl.FindOne(context.TODO(), bson.M{
+		"_id": id,
+        "userId": uid,
+	})
+	var lists types.BookmarkList
+	err := res.Decode(&lists)
+	if err != nil {
+		return nil, err
+	}
+	return &lists, nil
+}
+
+
+func (b *BookmarksRepo) GetBookmarkListById(id primitive.ObjectID) (*types.BookmarkList, error) {
 	res := b.listColl.FindOne(context.TODO(), bson.M{
 		"_id": id,
 	})

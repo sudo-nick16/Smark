@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import OutsideClickWrapper from "./OutsideClickWrapper";
 import bin from "../assets/bin.png";
 import sideBar from "../assets/sidebar.png";
+import publicIcon from "../assets/public.png";
+import privateIcon from "../assets/private.png";
 import edit from "../assets/edit.png";
 import share from "../assets/send.png";
 import { useSelector } from "react-redux";
@@ -14,27 +16,50 @@ import {
 } from "../store/index";
 import { flushSync } from "react-dom";
 import { focusCEElement } from "../utils/focusCEElement";
-import { deleteList, updateListTitle } from "../store/asyncActions";
+import {
+  deleteList,
+  updateListTitle,
+  updateListVisibility,
+} from "../store/asyncActions";
+import useSnackBarUtils from "../utils/useSnackBar";
 
 type HeadProps = {};
 
 const Head: React.FC<HeadProps> = ({}) => {
-  const title = useSelector((state: RootState) => state.currentList);
+  const currentTitle = useSelector<RootState, string>(
+    (state) => state.currentList
+  );
+  const bookmarks = useSelector<RootState, RootState["bookmarks"]["bookmarks"]>(
+    (state) => state.bookmarks.bookmarks
+  );
   const listTitleRef = useRef<HTMLElement>(null);
   const [editable, setEditable] = useState(false);
   const appDispatch = useAppDispatch();
+  const { showError } = useSnackBarUtils();
+
+  const toggleListVisibility = () => {
+    if (currentTitle.trim().toLowerCase() === "home") {
+      showError("Home list can't be public");
+      return;
+    }
+    appDispatch(updateListVisibility(currentTitle));
+  };
+
+  const getShareableLink = () => {
+
+    };
 
   const handleTitleBlur = () => {
-    if (
-      listTitleRef.current?.innerText.trim().toLowerCase() === "home" ||
-      listTitleRef.current?.innerText.trim().toLowerCase().indexOf("home") !==
-        -1
-    ) {
+    if (currentTitle.trim().toLowerCase() === "home") {
+      if (editable) {
+        listTitleRef.current.textContent = currentTitle;
+        setEditable(false);
+      }
       return;
     }
     appDispatch(
       updateListTitle({
-        oldTitle: title,
+        oldTitle: currentTitle,
         newTitle: listTitleRef.current?.innerText || "",
       })
     );
@@ -46,15 +71,20 @@ const Head: React.FC<HeadProps> = ({}) => {
   return (
     <div className="w-full px-4 min-h-[4.5rem] max-h-[4.5rem] h-[4.5rem] flex items-center justify-between border-b border-dark-gray">
       <div className="flex items-center">
-        <img src={sideBar} alt="delete" className="h-8 w-8 mr-2 hover:opacity-90 cursor-pointer lg:hidden" onClick={() => appDispatch(toggleSideBar())} />
+        <img
+          src={sideBar}
+          alt="delete"
+          className="h-8 w-8 mr-2 hover:opacity-90 cursor-pointer lg:hidden"
+          onClick={() => appDispatch(toggleSideBar())}
+        />
         <OutsideClickWrapper
           as={"p"}
           onOutsideClick={() => {
             handleTitleBlur();
           }}
           listenerState={editable}
-          className={`font-bold text-lg sm:text-xl px-2 line-clamp-2 ${
-            editable ? "border-1 border-white" : ""
+          className={`font-bold text-lg sm:text-xl px-2 outline-none rounded-md line-clamp-2 ${
+            editable ? "border-2 border-white" : ""
           }`}
           ref={listTitleRef}
           contentEditable={editable}
@@ -67,14 +97,14 @@ const Head: React.FC<HeadProps> = ({}) => {
             }
           }}
         >
-          {title}
+          {currentTitle}
         </OutsideClickWrapper>
       </div>
       <div className="bg-dark-gray flex items-center px-2 min-w-fit py-1 rounded-lg">
         <div
           onClick={() => {
-            if (title.trim().toLowerCase() === "home") return;
-            appDispatch(deleteList(title));
+            if (currentTitle.trim().toLowerCase() === "home") return;
+            appDispatch(deleteList(currentTitle));
             appDispatch(setCurrentList("Home"));
           }}
           className="hover:bg-[#4E4E4E] py-1 rounded-md cursor-pointer"
@@ -82,7 +112,22 @@ const Head: React.FC<HeadProps> = ({}) => {
           <img src={bin} alt="delete" className="h-4 w-4 mx-2" />
         </div>
         <div
-          onClick={() => {
+          onClick={toggleListVisibility}
+          className="hover:bg-[#4E4E4E] py-1 rounded-md cursor-pointer"
+        >
+          {bookmarks.find((list) => list.title === currentTitle)?.public ? (
+            <img src={publicIcon} alt="delete" className="h-4 w-4 mx-2" />
+          ) : (
+            <img src={privateIcon} alt="delete" className="h-4 w-4 mx-2" />
+          )}
+        </div>
+        <div
+          onClick={(e) => {
+            if (editable) {
+              listTitleRef.current.textContent = currentTitle;
+              setEditable(false);
+              return;
+            }
             flushSync(() => {
               setEditable((e) => !e);
             });
