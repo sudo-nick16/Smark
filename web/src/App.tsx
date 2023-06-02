@@ -12,17 +12,7 @@ import {
 } from "./store/index";
 import { Bookmark, BookmarkListWithChildren, Event } from "./types";
 import useAxios from "./utils/useAxios";
-import {
-  createBookmark,
-  createList,
-  deleteBookmark,
-  deleteList,
-  setBookmarks,
-  setBookmarksFromStorage,
-  updateBookmark,
-  updateListTitle,
-  updateListVisibility,
-} from "./store/asyncActions";
+import { setBookmarks, setBookmarksFromStorage } from "./store/asyncActions";
 import { useSelector } from "react-redux";
 import { getItem } from "./store/storageApi";
 import Input from "./components/Input";
@@ -32,6 +22,8 @@ import AuthModal from "./components/AuthModal";
 import BookmarkEditModal from "./components/BookmarkEditModal";
 import SnackBar from "./components/SnackBar";
 import useSnackBarUtils from "./utils/useSnackBar";
+import { isChrome } from "./utils/isChrome";
+import { processEvents } from "./utils/processEvents";
 
 type AppProps = {};
 
@@ -60,114 +52,26 @@ const App: React.FC<AppProps> = () => {
   console.log({ bookmarksState });
 
   useEffect(() => {
-    const processEvents = async () => {
-      let bookmarks = await getItem<BookmarkListWithChildren[]>(
-        "bookmarks",
-        []
-      );
-      const pendingEvents = await getItem<Event[]>("smark_events", []);
-      for (let event of pendingEvents) {
-        switch (event.type) {
-          case "create_bookmark": {
-            const data = event.data;
-            bookmarks.forEach((l) => {
-              if (l.title.trim() === data.listTitle.trim()) {
-                l.children.push({
-                  title: data.title,
-                  url: data.url,
-                  img: data.img,
-                  listTitle: data.listTitle,
-                  userId: "",
-                });
-              }
-            });
-            break;
-          }
-          case "update_bookmark": {
-            const data = event.data;
-            bookmarks.forEach((list) => {
-              if (list.title.trim() === data.listTitle.trim()) {
-                list.children.forEach((bookmark) => {
-                  if (bookmark.title.trim() === data.oldTitle.trim()) {
-                    bookmark.title = data.newTitle.trim();
-                    bookmark.url = data.url.trim();
-                  }
-                });
-              }
-            });
-            break;
-          }
-          case "delete_bookmark": {
-            const data = event.data;
-            bookmarks.forEach((list) => {
-              if (list.title.trim() === data.listTitle.trim()) {
-                list.children = list.children.filter(
-                  (b) => b.title.trim() !== data.title.trim()
-                );
-              }
-            });
-            break;
-          }
-          case "create_list": {
-            bookmarks.push({
-              title: event.data.title,
-              children: [],
-              public: false,
-              userId: "",
-            });
-            break;
-          }
-          case "update_list": {
-            const data = event.data;
-            bookmarks.forEach((list) => {
-              if (list.title.trim() === data.oldTitle.trim()) {
-                list.title = data.newTitle;
-              }
-            });
-            break;
-          }
-          case "delete_list": {
-            const data = event.data;
-            bookmarks = bookmarks.filter(
-              (list) => list.title.trim() !== data.title.trim()
-            );
-            break;
-          }
-          case "update_list_visibility": {
-            const data = event.data;
-            bookmarks.forEach((list) => {
-              if (list.title.trim() === data.title.trim()) {
-                list.public = !list.public;
-              }
-            });
-            break;
-          }
-          default: {
-            console.log("unknown event type");
-          }
-        }
-      }
-      appDispatch(setBookmarks(bookmarks));
-    };
-
     appDispatch(setBookmarksFromStorage());
-    processEvents();
 
     const initStateFromApi = async () => {
       console.log("fetching");
       const res = await api.get("/bookmarks");
       console.log(res);
       if (res.data.bookmarks) {
-        appDispatch(setBookmarks(res.data.bookmarks));
-        showSuccess("Bookmarks fetched.");
-        processEvents();
+        const bm = await processEvents(res.data.bookmarks);
+        appDispatch(setBookmarks(bm));
+        showSuccess("Bookmarks fetched and processed.");
         return;
       }
       showError("Couldn't fetch from api.");
     };
 
     appDispatch(setBookmarksFromStorage());
-    initStateFromApi();
+
+    if (!isChrome()) {
+      initStateFromApi();
+    }
 
     const fetchRefreshToken = async () => {
       try {
@@ -196,26 +100,37 @@ const App: React.FC<AppProps> = () => {
     };
     fetchRefreshToken();
 
-    const addStateUpdateListener = (key: string) => {
+    const addStateUpdateListener = <T,>(
+      key: string,
+      callback: (oldValue: T, newValue: T) => void
+    ) => {
       if (typeof chrome.storage === "undefined") {
-        console.log("[web]");
         return;
       }
-      console.log("[extension]");
       chrome.storage.onChanged.addListener((changes, _) => {
         for (let k of Object.keys(changes)) {
           if (k === key) {
-            const bookmark = diff(changes[key].oldValue, changes[key].newValue);
-            if (bookmark) {
-              appDispatch(setBookmarksFromStorage());
-            }
+            callback(changes[key].oldValue, changes[key].newValue);
             break;
           }
         }
       });
     };
 
-    addStateUpdateListener("bookmarks");
+    addStateUpdateListener<BookmarkListWithChildren[]>(
+      "bookmarks",
+      (oldValue, newValue) => {
+        const bookmark = diff(oldValue, newValue);
+        if (bookmark) {
+          appDispatch(setBookmarksFromStorage());
+        }
+      }
+    );
+    addStateUpdateListener<Event[]>("smark_events", (oldValue, newValue) => {
+      if (oldValue.length !== newValue.length) {
+        appDispatch(setBookmarksFromStorage());
+      }
+    });
 
     const setDefaultListAtStartup = async () => {
       const list = await getItem<string>("defaultList", "Home");

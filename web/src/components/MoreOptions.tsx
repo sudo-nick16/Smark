@@ -31,22 +31,7 @@ const MoreOptions: React.FC<MoreOptionsProps> = ({ className = " " }) => {
 
   const clearLocal = async () => {
     await setItem("smark_events", []);
-    showSuccess("Synced successfully");
-    console.log("cleared events");
-  };
-
-  const logoutHandler = async () => {
-    const res = await api.post("/logout");
-    console.log(res.data);
-
-    if (!res.data.error) {
-      console.log("logging out ");
-      appDispatch(logout());
-      showSuccess("Logged out successfully");
-      return;
-    }
-    showError("Couldn't logout");
-    console.log("logout failed");
+    showSuccess("Cleared local events");
   };
 
   const fetchHandler = async () => {
@@ -64,6 +49,7 @@ const MoreOptions: React.FC<MoreOptionsProps> = ({ className = " " }) => {
     console.log({ list });
     appDispatch(setDefaultList(list));
   };
+
   return (
     <div className={`flex grow flex-col ${className}`}>
       <div className="w-full h-[4.5rem] px-4 flex items-center justify-start border-b border-dark-gray">
@@ -75,16 +61,17 @@ const MoreOptions: React.FC<MoreOptionsProps> = ({ className = " " }) => {
         />
         <h1 className="font-bold text-xl">More options</h1>
       </div>
-      <div className="w-full p-4 flex">
-        <Button onClick={clearLocal}>Clear local events</Button>
-        <Button onClick={fetchHandler}>Fetch from remote</Button>
-
+      <div className="w-full p-4 flex flex-col">
+        <div className="w-full flex flex-wrap gap-3">
+          <Button onClick={clearLocal}>Clear local events</Button>
+          <Button onClick={fetchHandler}>Fetch from remote</Button>
+        </div>
         {isChrome() && (
-          <>
-            <span>Default list</span>
+          <div className="px-4 my-4 font-bold text-base">
+            <span>Default list : </span>
             <select
               onChange={(e) => handleDropdownChange(e.target.value)}
-              className="text-white bg-transparent border-0 outline-none"
+              className="text-white ml-10 bg-transparent border py-2 px-3 rounded-lg outline-none"
             >
               {bookmarks.bookmarks.map((bookmark, index) => {
                 return (
@@ -99,7 +86,7 @@ const MoreOptions: React.FC<MoreOptionsProps> = ({ className = " " }) => {
                 );
               })}
             </select>
-          </>
+          </div>
         )}
       </div>
     </div>

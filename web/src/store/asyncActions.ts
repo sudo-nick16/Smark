@@ -1,15 +1,20 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { BookmarkListWithChildren, Event } from "../types";
 import { getItem, setItem } from "./storageApi";
+import { processEvents } from "../utils/processEvents";
+import { bookmarks } from "./index";
 
 export const setBookmarksFromStorage = createAsyncThunk(
   "bookmark/setBookmarksFromStorage",
   async () => {
+    let bookmarks = await getItem<BookmarkListWithChildren[]>("bookmarks", [
+      { title: "Home", public: false, userId: "", children: [] },
+    ]);
+    const events = await getItem<Event[]>("smark_events", []);
+    bookmarks = await processEvents(bookmarks);
     return {
-      bookmarks: await getItem<BookmarkListWithChildren[]>("bookmarks", [
-        { title: "Home", public: false, userId: "", children: [] },
-      ]),
-      events: await getItem<Event[]>("smark_events", []),
+      bookmarks: bookmarks,
+      events: events,
     };
   }
 );

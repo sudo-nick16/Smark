@@ -14,8 +14,9 @@ func setupConfig() *types.Config {
 		log.Println("Error loading .env file")
 	}
 	return &types.Config{
-		Port:       env.GetEnv("PORT", ":42069"),
+		Port:       env.GetEnv("PORT", "42069"),
 		DbUrl:      env.GetEnv("DB_URL", "mongodb://root:shorty1@127.0.0.1:27017/?serverSelectionTimeoutMS=2000"),
+		Origin:     env.GetEnv("ORIGIN", "localhost, http://localhost:5173, chrome-extension://fmolcfaicblfnadllocamjmheeaabhif"),
 		AccessKey:  env.GetEnv("ACCESS_KEY", "neioneio"),
 		RefreshKey: env.GetEnv("REFRESH_KEY", "arstarst"),
 		ClientUrl:  env.GetEnv("CLIENT_URL", "http://localhost:5173"),

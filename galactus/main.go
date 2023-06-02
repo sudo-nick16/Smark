@@ -48,7 +48,7 @@ func main() {
 	})
 
 	corsMiddleware := cors.New(cors.Config{
-		AllowOrigins:     "localhost, http://localhost:5173, chrome-extension://fmolcfaicblfnadllocamjmheeaabhif",
+		AllowOrigins:    config.Origin, 
 		AllowCredentials: true,
 	})
 
@@ -62,7 +62,7 @@ func main() {
 
 	app.Get("/bookmarks", middlewares.AuthMiddleware(config), handlers.GetBookmarks(bookmarkRepo))
 
-    app.Get("/bookmarks/share/:title", middlewares.AuthMiddleware(config), handlers.GetShareLink(bookmarkRepo, config))
+	app.Get("/bookmarks/share/:title", middlewares.AuthMiddleware(config), handlers.GetShareLink(bookmarkRepo, config))
 
 	app.Get("/bookmarks/:userId/:bookmarkListId", handlers.GetPublicList(bookmarkRepo))
 
@@ -76,5 +76,5 @@ func main() {
 
 	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
 
-	app.Listen(config.Port)
+	app.Listen(":" + config.Port)
 }

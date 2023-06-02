@@ -46,6 +46,7 @@ type AuthTokenClaims struct {
 type Config struct {
 	Port         string
 	DbUrl        string
+	Origin       string
 	AccessKey    string
 	RefreshKey   string
 	ClientUrl    string
