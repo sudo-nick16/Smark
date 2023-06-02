@@ -59,10 +59,7 @@ const Head: React.FC<HeadProps> = ({}) => {
 
   const handleTitleBlur = () => {
     if (currentTitle.trim().toLowerCase() === "home") {
-      if (editable) {
-        listTitleRef.current.textContent = currentTitle;
-        setEditable(false);
-      }
+      setEditable(false);
       return;
     }
     appDispatch(
@@ -131,15 +128,14 @@ const Head: React.FC<HeadProps> = ({}) => {
         </div>
         <div
           onClick={(e) => {
-            if (editable) {
-              listTitleRef.current.textContent = currentTitle;
-              setEditable(false);
+            if (!editable) {
+              flushSync(() => {
+                setEditable(true);
+              });
+              focusCEElement(listTitleRef);
               return;
             }
-            flushSync(() => {
-              setEditable((e) => !e);
-            });
-            focusCEElement(listTitleRef);
+            setEditable(false);
           }}
           className="hover:bg-[#4E4E4E] py-1 rounded-md cursor-pointer"
         >
