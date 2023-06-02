@@ -10,6 +10,7 @@ import {
 } from "../store/index";
 import { setItem } from "../store/storageApi";
 import { isChrome } from "../utils/isChrome";
+import { processEvents } from "../utils/processEvents";
 import useAxios from "../utils/useAxios";
 import useSnackBarUtils from "../utils/useSnackBar";
 import Button from "./Button";
@@ -39,7 +40,8 @@ const MoreOptions: React.FC<MoreOptionsProps> = ({ className = " " }) => {
     const res = await api.get("/bookmarks");
     console.log(res);
     if (res.data.bookmarks) {
-      appDispatch(setBookmarks(res.data.bookmarks));
+      const bm = await processEvents(res.data.bookmarks);
+      appDispatch(setBookmarks(bm));
       showSuccess("Fetched successfully");
       return;
     }

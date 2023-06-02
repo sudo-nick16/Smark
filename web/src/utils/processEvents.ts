@@ -9,7 +9,13 @@ export const processEvents = async (bookmarks: BookmarkListWithChildren[]) => {
         const data = event.data;
         bookmarks.forEach((l) => {
           if (l.title.trim() === data.listTitle.trim()) {
-            if (!l.children.find((b) => b.title.trim() === data.title.trim())) {
+            if (
+              !l.children.find(
+                (b) =>
+                  b.title.trim() === data.title.trim() ||
+                  b.url.trim() === data.url.trim()
+              )
+            ) {
               l.children.push({
                 title: data.title,
                 url: data.url,

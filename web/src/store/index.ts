@@ -14,6 +14,7 @@ import {
   deleteList,
   setBookmarks,
   setBookmarksFromStorage,
+  updateBookmark,
   updateListTitle,
   updateListVisibility,
 } from "./asyncActions";
@@ -32,7 +33,8 @@ export const bookmarks = createSlice({
       state.events = action.payload.events;
     });
     builder.addCase(setBookmarks.fulfilled, (state, action) => {
-      state.bookmarks = action.payload;
+      state.bookmarks = action.payload.bookmarks;
+      state.events = action.payload.events;
     });
     builder.addCase(clearSmarkEvents.fulfilled, (state) => {
       state.events = [];
@@ -61,8 +63,21 @@ export const bookmarks = createSlice({
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
+    builder.addCase(updateBookmark.fulfilled, (state, action) => {
+      state.bookmarks = action.payload.bookmarks;
+      state.events = action.payload.events;
+    });
   },
 });
+
+export const eventCounter = createSlice({
+  name: "eventCounter",
+  initialState: 0,
+  reducers:{},
+  extraReducers: (builder)  => {
+
+  }
+})
 
 export const currentList = createSlice({
   name: "currentList",

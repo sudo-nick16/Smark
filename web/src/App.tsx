@@ -60,14 +60,13 @@ const App: React.FC<AppProps> = () => {
       console.log(res);
       if (res.data.bookmarks) {
         const bm = await processEvents(res.data.bookmarks);
+        console.log("afer proccing events, sot: ", bm);
         appDispatch(setBookmarks(bm));
         showSuccess("Bookmarks fetched and processed.");
         return;
       }
       showError("Couldn't fetch from api.");
     };
-
-    appDispatch(setBookmarksFromStorage());
 
     if (!isChrome()) {
       initStateFromApi();
@@ -126,11 +125,6 @@ const App: React.FC<AppProps> = () => {
         }
       }
     );
-    addStateUpdateListener<Event[]>("smark_events", (oldValue, newValue) => {
-      if (oldValue.length !== newValue.length) {
-        appDispatch(setBookmarksFromStorage());
-      }
-    });
 
     const setDefaultListAtStartup = async () => {
       const list = await getItem<string>("defaultList", "Home");
