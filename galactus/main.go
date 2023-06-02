@@ -62,9 +62,9 @@ func main() {
 
 	app.Get("/bookmarks", middlewares.AuthMiddleware(config), handlers.GetBookmarks(bookmarkRepo))
 
-	app.Get("/bookmarks/:userId/:bookmarkListId", handlers.GetPublicList(bookmarkRepo))
+    app.Get("/bookmarks/share/:title", middlewares.AuthMiddleware(config), handlers.GetShareLink(bookmarkRepo, config))
 
-	app.Get("/bookmarks/share/:title", middlewares.AuthMiddleware(config), handlers.GetShareLink(bookmarkRepo, config))
+	app.Get("/bookmarks/:userId/:bookmarkListId", handlers.GetPublicList(bookmarkRepo))
 
 	app.Get("/me", middlewares.AuthMiddleware(config), handlers.GetMe(userRepo))
 

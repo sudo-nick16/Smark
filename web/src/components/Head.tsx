@@ -8,7 +8,6 @@ import edit from "../assets/edit.png";
 import share from "../assets/send.png";
 import { useSelector } from "react-redux";
 import {
-  currentList,
   RootState,
   setCurrentList,
   toggleSideBar,
@@ -22,10 +21,13 @@ import {
   updateListVisibility,
 } from "../store/asyncActions";
 import useSnackBarUtils from "../utils/useSnackBar";
+import useAxios from "../utils/useAxios";
 
 type HeadProps = {};
 
 const Head: React.FC<HeadProps> = ({}) => {
+  const api = useAxios();
+  const { showSuccess, showError } = useSnackBarUtils();
   const currentTitle = useSelector<RootState, string>(
     (state) => state.currentList
   );
@@ -35,7 +37,6 @@ const Head: React.FC<HeadProps> = ({}) => {
   const listTitleRef = useRef<HTMLElement>(null);
   const [editable, setEditable] = useState(false);
   const appDispatch = useAppDispatch();
-  const { showError } = useSnackBarUtils();
 
   const toggleListVisibility = () => {
     if (currentTitle.trim().toLowerCase() === "home") {
@@ -45,9 +46,16 @@ const Head: React.FC<HeadProps> = ({}) => {
     appDispatch(updateListVisibility(currentTitle));
   };
 
-  const getShareableLink = () => {
-
-    };
+  const getShareableLink = async () => {
+    const res = await api.get(`/bookmarks/share/${currentTitle}`);
+    console.log(res);
+    if (res.data.shareLink) {
+      await navigator.clipboard.writeText(res.data.shareLink);
+      showSuccess("Link copied to clipboard");
+      return;
+    }
+    showError("could not get shareable link");
+  };
 
   const handleTitleBlur = () => {
     if (currentTitle.trim().toLowerCase() === "home") {
@@ -138,7 +146,7 @@ const Head: React.FC<HeadProps> = ({}) => {
           <img src={edit} alt="edit" className="h-4 w-4 mx-2" />
         </div>
         <div
-          onClick={() => {}}
+          onClick={getShareableLink}
           className="hover:bg-[#4E4E4E] py-1 rounded-md cursor-pointer"
         >
           <img src={share} alt="share" className="h-4 w-4 mx-2" />

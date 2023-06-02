@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +27,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
 		}
 		userId := authCtx.UserId
-		var requestBody types.SyncEventRequest
+		requestBody := types.SyncEventRequest{}
 		err := c.BodyParser(&requestBody)
 		if err != nil {
 			return err
@@ -42,7 +43,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 				switch v.Type {
 				case types.CreateListEvent:
 					{
-						var bl types.BookmarkList
+						bl := types.BookmarkList{}
 						bl.UserId = userId
 						bl.Public = false
 						err := mapstructure.Decode(v.Data, &bl)
@@ -65,10 +66,10 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.UpdateListTitleEvent:
 					{
-						var data struct {
+						data := struct {
 							OldTitle string `json:"oldTitle"`
 							Title    string `json:"title"`
-						}
+						}{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.UpdateBookmarkListTitle(data.Title, data.OldTitle, userId)
 						if err != nil {
@@ -78,8 +79,11 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.ChangeListVisibilityEvent:
 					{
-						var data types.BookmarkList
+						data := types.BookmarkList{}
 						mapstructure.Decode(v.Data, &data)
+						if strings.ToLower(strings.TrimSpace(data.Title)) == "home" {
+							continue
+						}
 						err := bookmarksRepo.ChangeListVisibility(data.Title, userId)
 						if err != nil {
 							return nil, err
@@ -88,7 +92,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.DeleteListEvent:
 					{
-						var data types.BookmarkList
+						data := types.BookmarkList{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.DeleteBookmarkList(data.Title, userId)
 						if err != nil {
@@ -98,10 +102,15 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.CreateBookmarkEvent:
 					{
-						var data types.Bookmark
+						data := types.Bookmark{}
 						data.UserId = userId
 						mapstructure.Decode(v.Data, &data)
-						_, err := bookmarksRepo.CreateBookmark(&data)
+						lst, err := bookmarksRepo.GetBookmarkListByTitle(data.ListTitle, userId)
+						if err != nil {
+							return nil, err
+						}
+						data.ListId = lst.Id
+						_, err = bookmarksRepo.CreateBookmark(&data)
 						if err != nil {
 							return nil, err
 						}
@@ -109,10 +118,10 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.UpdateBookmarkTitleEvent:
 					{
-						var data struct {
+						data := struct {
 							OldTitle string `json:"oldTitle"`
 							Title    string `json:"title"`
-						}
+						}{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.UpdateBookmarkTitle(data.Title, data.OldTitle, userId)
 						if err != nil {
@@ -122,12 +131,12 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.UpdateBookmarkEvent:
 					{
-						var data struct {
+						data := struct {
 							OldTitle  string `json:"oldTitle"`
 							Title     string `json:"title"`
 							ListTitle string `json:"listTitle"`
 							Url       string `json:"url"`
-						}
+						}{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.UpdateBookmark(data.Url, data.Title, data.OldTitle, userId, data.ListTitle)
 						if err != nil {
@@ -137,10 +146,10 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.UpdateBookmarkUrlEvent:
 					{
-						var data struct {
+						data := struct {
 							Url   string `json:"url"`
 							Title string `json:"title"`
-						}
+						}{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.UpdateBookmarkUrl(data.Url, data.Title, userId)
 						if err != nil {
@@ -150,11 +159,11 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					}
 				case types.DeleteBookmarkEvent:
 					{
-						var data struct {
+						data := struct {
 							Title     string
 							ListTitle string
 							UserId    string
-						}
+						}{}
 						mapstructure.Decode(v.Data, &data)
 						err := bookmarksRepo.DeleteBookmark(data.ListTitle, data.Title, userId)
 						if err != nil {
@@ -220,22 +229,32 @@ func GetPublicList(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, "invalid bookmark list id.")
 		}
-		bookmarkList, err := bookmarksRepo.GetBookmarkList(id, uid)
+		bookmarkList, err := bookmarksRepo.GetBookmarkListById(id, uid)
 		log.Printf("bookmark list: %v", bookmarkList)
 		if err != nil {
 			return fiber.NewError(fiber.StatusOK, "list not found.")
 		}
-        if !bookmarkList.Public {
+		if !bookmarkList.Public {
 			return fiber.NewError(fiber.StatusOK, "the list is private.")
-        }
+		}
+		listWithChildren := types.BookmarkListWithChildren{
+			Id:     bookmarkList.Id,
+			Title:  bookmarkList.Title,
+			Public: bookmarkList.Public,
+			UserId: bookmarkList.UserId,
+		}
+		listWithChildren.Children, err = bookmarksRepo.GetBookmarksByListId(bookmarkList.Id, bookmarkList.UserId)
+		log.Printf("children: %v", listWithChildren.Children)
+		if err != nil {
+			listWithChildren.Children = &[]types.Bookmark{}
+		}
 		return c.JSON(
 			fiber.Map{
-				"bookmarkList": bookmarkList,
+				"bookmarkList": listWithChildren,
 			},
 		)
 	}
 }
-
 
 func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -244,19 +263,19 @@ func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config)
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
 		}
 		userId := authCtx.UserId
-        title := c.Params("title")
-        if title == "" {
-            return fiber.NewError(fiber.StatusBadRequest, "invalid title")
-        }
+		title := c.Params("title")
+		if title == "" {
+			return fiber.NewError(fiber.StatusBadRequest, "invalid title")
+		}
 		bookmarkList, err := bookmarksRepo.GetBookmarkListByTitle(title, userId)
 		log.Printf("bookmarks: %v", bookmarkList)
 		if err != nil {
 			return fiber.NewError(fiber.StatusOK, "no bookmarks found")
 		}
-        if !bookmarkList.Public {
+		if !bookmarkList.Public {
 			return fiber.NewError(fiber.StatusOK, "the list is not public")
-        }
-        link := fmt.Sprintf("%s/%s/%s", config.ServerUrl, userId, bookmarkList.Id.Hex())
+		}
+		link := fmt.Sprintf("%s/#/%s/%s", config.ClientUrl, userId.Hex(), bookmarkList.Id.Hex())
 		return c.JSON(
 			fiber.Map{
 				"shareLink": link,
@@ -264,4 +283,3 @@ func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config)
 		)
 	}
 }
-

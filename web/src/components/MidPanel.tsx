@@ -4,7 +4,7 @@ import Account from "./Account";
 import BookmarkList from "./BookmarkList";
 import ForeignList from "./ForeignList";
 import Protected from "./Protected";
-import Settings from "./Settings";
+import MoreOptions from "./MoreOptions";
 
 type UrlListProps = {
     className?: string;
@@ -28,13 +28,13 @@ const MidPanel: React.FC<UrlListProps> = ({ className = "" }) => {
                 }
             />
             <Route
-                path="/settings"
+                path="/more-options"
                 id="settings"
-                element={<Settings className={`section-b ${className}`} />}
+                element={<MoreOptions className={`section-b ${className}`} />}
             />
             <Route
                 path="/:userId/:listId"
-                id="account"
+                id="foreign-list"
                 element={<ForeignList className={`section-b ${className}`} />}
             />
         </Routes>

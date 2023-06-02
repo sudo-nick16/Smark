@@ -104,11 +104,6 @@ const Profile: React.FC<ProfileProps> = () => {
                     <h1 className="font-bold text-base leading-tight line-clamp-1 mb-2">
                         {authState.user.name}
                     </h1>
-                    {
-                        // <div onClick={logoutHandler} className='s-shadow cursor-pointer bg-dark-gray rounded-xl flex justify-center items-center px-2'>
-                        //     Logout
-                        //     </div>
-                    }
                     <Tag
                         title={synced ? "synced" : "sync"}
                         className={`${
@@ -116,14 +111,10 @@ const Profile: React.FC<ProfileProps> = () => {
                         }`}
                         onClick={syncBookmarks}
                     />
-                    {
-                        // <Tag title="Fetch" onClick={fetchHandler} />
-                        //     <Tag title="Clear" onClick={clearLocal} />
-                    }
                 </div>
                 <img
                     onClick={() => {
-                        navigate("/settings");
+                        navigate("/more-options");
                         appDispatch(toggleSideBar());
                     }}
                     src={settingsIcon}

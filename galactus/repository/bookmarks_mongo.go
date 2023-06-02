@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	"github.com/sudo-nick16/smark/galactus/types"
@@ -157,7 +156,7 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 	if err != nil {
 		return nil, err
 	}
-	var bookmarks []types.BookmarkListWithChildren
+	bookmarks := []types.BookmarkListWithChildren{}
 	for listCur.Next(context.Background()) {
 		var list types.BookmarkListWithChildren
 		err := listCur.Decode(&list)
@@ -175,39 +174,26 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 			return nil, err
 		}
 
-        bms := []types.Bookmark{}
+		bms := []types.Bookmark{}
 
 		err = bmCur.All(context.Background(), &bms)
 		if err != nil {
 			return nil, err
 		}
 
-        list.Children = &bms
+		list.Children = &bms
 
-        log.Printf("list children: %v", list.Children)
+		log.Printf("list children: %v", list.Children)
 
 		bookmarks = append(bookmarks, list)
 	}
 	return &bookmarks, nil
 }
 
-func (b *BookmarksRepo) GetBookmarkList(id, uid primitive.ObjectID) (*types.BookmarkList, error) {
+func (b *BookmarksRepo) GetBookmarkListById(id, uid primitive.ObjectID) (*types.BookmarkList, error) {
 	res := b.listColl.FindOne(context.TODO(), bson.M{
-		"_id": id,
-        "userId": uid,
-	})
-	var lists types.BookmarkList
-	err := res.Decode(&lists)
-	if err != nil {
-		return nil, err
-	}
-	return &lists, nil
-}
-
-
-func (b *BookmarksRepo) GetBookmarkListById(id primitive.ObjectID) (*types.BookmarkList, error) {
-	res := b.listColl.FindOne(context.TODO(), bson.M{
-		"_id": id,
+		"_id":    id,
+		"userId": uid,
 	})
 	var lists types.BookmarkList
 	err := res.Decode(&lists)
@@ -230,16 +216,26 @@ func (b *BookmarksRepo) GetBookmarkListByTitle(title string, uid primitive.Objec
 	return &lists, nil
 }
 
-func (b *BookmarksRepo) GetBookmarksByListId(lid string) (*[]types.Bookmark, error) {
-	id, err := primitive.ObjectIDFromHex(lid)
-	if err != nil {
-		return nil, errors.New("invalid list id")
-	}
-	res := b.coll.FindOne(context.TODO(), bson.M{
-		"listId": id,
+func (b *BookmarksRepo) GetBookmarksByListId(lid, uid primitive.ObjectID) (*[]types.Bookmark, error) {
+	resCur, err := b.coll.Find(context.TODO(), bson.M{
+		"listId": lid,
+		"userId": uid,
 	})
-	var bookmarks []types.Bookmark
-	err = res.Decode(&bookmarks)
+	bookmarks := []types.Bookmark{}
+	err = resCur.All(context.Background(), &bookmarks)
+	if err != nil {
+		return nil, err
+	}
+	return &bookmarks, nil
+}
+
+func (b *BookmarksRepo) GetBookmarksByListTitle(listTitle, uid primitive.ObjectID) (*[]types.Bookmark, error) {
+	resCur, err := b.coll.Find(context.TODO(), bson.M{
+		"listTitle": listTitle,
+		"userId": uid,
+	})
+	bookmarks := []types.Bookmark{}
+	err = resCur.All(context.Background(), &bookmarks)
 	if err != nil {
 		return nil, err
 	}

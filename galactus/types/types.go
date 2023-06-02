@@ -19,10 +19,10 @@ type BookmarkList struct {
 }
 
 type BookmarkListWithChildren struct {
-	Id        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Title     string             `json:"title,omitempty" bson:"title,omitempty"`
-	Public    bool               `json:"public" bson:"public"`
-	UserId    primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
+	Id       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title    string             `json:"title,omitempty" bson:"title,omitempty"`
+	Public   bool               `json:"public" bson:"public"`
+	UserId   primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
 	Children *[]Bookmark        `json:"children" bson:"children"`
 }
 
@@ -32,6 +32,7 @@ type Bookmark struct {
 	Url       string             `json:"url,omitempty" bson:"url,omitempty"`
 	Img       string             `json:"img,omitempty" bson:"img,omitempty"`
 	ListTitle string             `json:"listTitle,omitempty" bson:"listTitle,omitempty"`
+	ListId    primitive.ObjectID `json:"listId,omitempty" bson:"listId,omitempty"`
 	UserId    primitive.ObjectID `json:"userId,omitempty" bson:"userId,omitempty"`
 }
 
