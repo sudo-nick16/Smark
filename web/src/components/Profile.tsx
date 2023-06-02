@@ -75,9 +75,9 @@ const Profile: React.FC<ProfileProps> = () => {
   };
 
   return !authState.user ? (
-    <div className="py-3 px-4 flex items-center">
+    <div className="py-3 px-4 mb-[4.5rem] lg:mb-0 flex items-center">
       <div
-        className="mb-[4.5rem] lg:mb-0 flex items-center justify-center 
+        className="flex items-center justify-center 
                 w-full mt-auto bg-dark-gray opacity-90 hover:opacity-100
                 cursor-pointer p-2 rounded-full font-medium text-base"
         onClick={toggleModal}
