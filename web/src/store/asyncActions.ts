@@ -27,21 +27,12 @@ export const setBookmarks = createAsyncThunk(
     await setItem("bookmarks", bookmarks);
     return {
       bookmarks: bookmarks,
-      events: await getItem<Event[]>("smark_events", []),
     };
   }
 );
 
-export const setEventCounter = createAsyncThunk(
-  "smarkEvents/setCounter",
-  async (bookmarks: BookmarkListWithChildren[]) => {
-    await setItem("bookmarks", bookmarks);
-    return bookmarks;
-  }
-);
-
 export const clearSmarkEvents = createAsyncThunk(
-  "bookmark/clearSmarkEvents",
+  "smarkEvents/clearSmarkEvents",
   async () => {
     await setItem("smark_events", []);
   }

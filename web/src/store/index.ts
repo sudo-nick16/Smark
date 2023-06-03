@@ -1,7 +1,9 @@
 import {
   configureStore,
   createAsyncThunk,
+  createListenerMiddleware,
   createSlice,
+  isAnyOf,
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
@@ -34,7 +36,6 @@ export const bookmarks = createSlice({
     });
     builder.addCase(setBookmarks.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
-      state.events = action.payload.events;
     });
     builder.addCase(clearSmarkEvents.fulfilled, (state) => {
       state.events = [];
@@ -73,11 +74,9 @@ export const bookmarks = createSlice({
 export const eventCounter = createSlice({
   name: "eventCounter",
   initialState: 0,
-  reducers:{},
-  extraReducers: (builder)  => {
-
-  }
-})
+  reducers: {},
+  extraReducers: (builder) => {},
+});
 
 export const currentList = createSlice({
   name: "currentList",
@@ -299,6 +298,8 @@ export const {
   showSuccessMessage,
 } = snackBarSlice.actions;
 
+export const smarkEventsListener = createListenerMiddleware();
+
 export const store = configureStore({
   reducer: {
     bookmarks: bookmarks.reducer,
@@ -311,6 +312,7 @@ export const store = configureStore({
     syncStatus: syncStatus.reducer,
     snackBar: snackBarSlice.reducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(smarkEventsListener.middleware),
 });
 
 export default store;
