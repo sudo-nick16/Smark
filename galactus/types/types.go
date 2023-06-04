@@ -1,6 +1,8 @@
 package types
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type User struct {
 	Id   primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
@@ -44,20 +46,33 @@ type AuthTokenClaims struct {
 }
 
 type Config struct {
-	Port         string
-	DbUrl        string
-	Origin       string
-	AccessKey    string
-	RefreshKey   string
-	ClientUrl    string
-	ServerUrl    string
-	GoogleConfig GoogleConfig
+	Port             string
+	DbUrl            string
+	Origin           string
+	AccessKey        string
+	RefreshKey       string
+	ClientUrl        string
+	ServerUrl        string
+	GoogleConfig     GoogleConfig
+	OauthStateString string
 }
 
 type GoogleConfig struct {
 	ClientId     string
 	ClientSecret string
 	RedirectUrl  string
+	Scopes       []string
+}
+
+type GoogleUser struct {
+	Id            string `json:"id,omitempty"`
+	Email         string `json:"email,omitempty"`
+	VerifiedEmail bool   `json:"verified_email,omitempty"`
+	Name          string `json:"name,omitempty"`
+	GivenName     string `json:"given_name,omitempty"`
+	FamilyName    string `json:"family_name,omitempty"`
+	Picture       string `json:"picture,omitempty"`
+	Locale        string `json:"locale,omitempty"`
 }
 
 const (

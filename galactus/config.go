@@ -25,6 +25,11 @@ func setupConfig() *types.Config {
 			ClientId:     env.GetEnv("GOOGLE_CLIENT_ID", ""),
 			ClientSecret: env.GetEnv("GOOGLE_CLIENT_SECRET", ""),
 			RedirectUrl:  env.GetEnv("GOOGLE_REDIRECT_URI", ""),
+			Scopes: env.GetEnvAsSlice("GOOGLE_SCOPS", []string{
+				"https://www.googleapis.com/auth/userinfo.email",
+				"https://www.googleapis.com/auth/userinfo.profile",
+			}, ","),
 		},
+        OauthStateString: env.GetEnv("OAUTH_STATE_STRING", "23fspstg67ljmgtp56jmgs567"),
 	}
 }

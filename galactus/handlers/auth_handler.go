@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -17,6 +18,8 @@ import (
 	"github.com/sudo-nick16/smark/galactus/repository"
 	"github.com/sudo-nick16/smark/galactus/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 func CreateToken(t *types.AuthTokenClaims, key string) (string, error) {
@@ -51,13 +54,20 @@ func GetGoogleOauthUrl(gc *types.GoogleConfig) string {
 
 func GoogleAuthflowHandler(config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		googleOauthUrl := GetGoogleOauthUrl(&config.GoogleConfig)
-		log.Printf("Google auth url: %v", googleOauthUrl)
-		err := c.Redirect(googleOauthUrl, fiber.StatusTemporaryRedirect)
+		URL, err := url.Parse(google.Endpoint.AuthURL)
 		if err != nil {
 			return err
 		}
-		return nil
+		parameters := url.Values{}
+		parameters.Add("client_id", config.GoogleConfig.ClientId)
+		parameters.Add("scope", strings.Join(config.GoogleConfig.Scopes, " "))
+		parameters.Add("redirect_uri", config.GoogleConfig.RedirectUrl)
+		parameters.Add("response_type", "code")
+		parameters.Add("state", config.OauthStateString)
+		URL.RawQuery = parameters.Encode()
+		googleOauthUrl := URL.String()
+
+		return c.Redirect(googleOauthUrl, fiber.StatusTemporaryRedirect)
 	}
 }
 
@@ -123,80 +133,61 @@ func RefreshTokenHandler(config *types.Config, userRepo *repository.UserRepo) fi
 	}
 }
 
-func GoogleCallbackHandler(config *types.Config, userRepo *repository.UserRepo) fiber.Handler {
+func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config, userRepo *repository.UserRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		code := c.Query("code", "")
+		state := c.FormValue("state")
+
+		if state != config.OauthStateString {
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
+		}
+
+		code := c.FormValue("code")
 		if code == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			c.JSON(fiber.Map{
 				"error": "no code provided",
 			})
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
-		log.Printf("code: %v\n", code)
 
-		values := url.Values{}
-		values.Add("grant_type", "authorization_code")
-		values.Add("code", code)
-		values.Add("client_id", config.GoogleConfig.ClientId)
-		values.Add("client_secret", config.GoogleConfig.ClientSecret)
-		values.Add("redirect_uri", config.GoogleConfig.RedirectUrl)
-
-		req, err := http.NewRequest(
-			"POST",
-			"https://oauth2.googleapis.com/token",
-			strings.NewReader(values.Encode()))
+		token, err := googleOauthConf.Exchange(oauth2.NoContext, code)
 		if err != nil {
-			return err
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		client := http.Client{
-			Timeout: time.Second * 30,
-		}
-
-		res, err := client.Do(req)
+		resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(token.AccessToken))
 		if err != nil {
-			return err
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
+		defer resp.Body.Close()
 
-		if res.StatusCode != http.StatusOK {
-			return errors.New("could not retrieve token")
-		}
-
-		var resBody bytes.Buffer
-		_, err = resBody.ReadFrom(res.Body)
+		response, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
-		var GoogleAuthTokenRes map[string]interface{}
-		err = json.Unmarshal(resBody.Bytes(), &GoogleAuthTokenRes)
-		if err != nil {
-			return err
+		log.Printf("response: %v\n", string(response))
+
+		user := types.GoogleUser{}
+
+		json.Unmarshal(response, &user)
+
+		if user.Email == "" {
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
-		idToken := GoogleAuthTokenRes["id_token"].(string)
-
-		// fmt.Printf("Google Auth Res: %v", GoogleAuthTokenRes)
-
-		t, _, err := jwt.NewParser().ParseUnverified(idToken, jwt.MapClaims{})
-		if err != nil {
-			log.Println("error: ", err)
-			return err
-		}
-		userEmail := t.Claims.(jwt.MapClaims)["email"].(string)
-		usr, _ := userRepo.GetUserByEmail(userEmail)
+		usr, _ := userRepo.GetUserByEmail(user.Email)
 		if usr == nil {
 			usr = &types.User{
-				Email:        userEmail,
-				Name:         t.Claims.(jwt.MapClaims)["name"].(string),
-				Img:          t.Claims.(jwt.MapClaims)["picture"].(string),
+				Email:        user.Email,
+				Name:         user.Name,
+				Img:          user.Picture,
 				TokenVersion: 0,
 			}
 			_, err = userRepo.CreateUser(usr)
 		}
-		token, err := CreateToken(&types.AuthTokenClaims{
-			UserId: usr.Id,
-			// Username:     usr.UserName,
+
+		refreshToken, err := CreateToken(&types.AuthTokenClaims{
+			UserId:       usr.Id,
 			TokenVersion: usr.TokenVersion,
 			Exp:          time.Now().Add(time.Hour * 24 * 7).Unix(),
 		}, config.RefreshKey)
@@ -208,14 +199,13 @@ func GoogleCallbackHandler(config *types.Config, userRepo *repository.UserRepo) 
 
 		c.Cookie(&fiber.Cookie{
 			Name:     "smark",
-			Value:    token,
+			Value:    refreshToken,
 			Secure:   true,
 			Expires:  time.Now().Add(time.Hour * 24 * 7),
 			HTTPOnly: true,
 		})
-		// fmt.Printf("Token struct from google: %v\nClaims: %v", t, t.Claims)
-		c.Redirect(config.ClientUrl)
-		return nil
+
+		return c.Redirect(config.ClientUrl)
 	}
 }
 
