@@ -8,6 +8,8 @@ import BookmarkItem from "./BookmarkItem";
 import Button from "./Button";
 import { useSelector } from "react-redux";
 import useSnackBarUtils from "../utils/useSnackBar";
+import axios from "axios";
+import { SERVER_URL } from "../constants";
 
 type ForeignListProps = {
   className?: string;
@@ -47,7 +49,7 @@ const ForeignList: React.FC<ForeignListProps> = ({ className = "" }) => {
     const fetchList = async () => {
       const { userId, listId } = params;
       if (userId && listId) {
-        const res = await api.get(`/bookmarks/${userId}/${listId}`);
+        const res = await axios.get(`${SERVER_URL}/bookmarks/${userId}/${listId}`);
         if (res.data.error) {
           console.log(res.data.error);
           setNotFound(true);
