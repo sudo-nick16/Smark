@@ -60,12 +60,9 @@ const App: React.FC<AppProps> = () => {
     appDispatch(setBookmarksFromStorage());
 
     const initStateFromApi = async () => {
-      console.log("fetching");
       const res = await api.get("/bookmarks");
-      console.log(res);
       if (res.data.bookmarks) {
         const bm = await processEvents(res.data.bookmarks);
-        console.log("afer proccing events, sot: ", bm);
         appDispatch(setBookmarks(bm));
         showSuccess("Bookmarks fetched and processed.");
         return;
@@ -90,18 +87,17 @@ const App: React.FC<AppProps> = () => {
         if (!response.data.error && response.data.accessToken) {
           appDispatch(setAccessToken(response.data.accessToken));
           const res = await api.get("/me");
-          console.log("res", res.data);
           if (!res.data.error) {
             appDispatch(setUser(res.data.user));
           }
         } else {
-          console.log(response.data.error);
           appDispatch(logout());
         }
       } catch (err) {
         console.log(err);
       }
     };
+
     fetchRefreshToken();
 
     const addStateUpdateListener = <T,>(
@@ -141,24 +137,23 @@ const App: React.FC<AppProps> = () => {
     const unsubscribe = isChrome()
       ? undefined
       : smarkEventsListener.startListening({
-          predicate: (action) => {
-            if (
-              action.type.startsWith("bookmark") &&
-              action.type.endsWith("fulfilled")
-            ) {
-              return true;
-            }
-            return false;
-          },
-          effect: async (action) => {
-            console.log("action", action);
-            const events = await getItem<Event[]>("smark_events", []);
-            const res = await api.post("/sync", { events });
-            if (!res.data.error) {
-              appDispatch(clearSmarkEvents());
-            }
-          },
-        });
+        predicate: (action) => {
+          if (
+            action.type.startsWith("bookmark") &&
+            action.type.endsWith("fulfilled")
+          ) {
+            return true;
+          }
+          return false;
+        },
+        effect: async (_) => {
+          const events = await getItem<Event[]>("smark_events", []);
+          const res = await api.post("/sync", { events });
+          if (!res.data.error) {
+            appDispatch(clearSmarkEvents());
+          }
+        },
+      });
 
     return () => {
       unsubscribe && unsubscribe();

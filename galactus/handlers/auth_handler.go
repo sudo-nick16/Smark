@@ -23,7 +23,7 @@ import (
 
 func CreateToken(t *types.AuthTokenClaims, key string) (string, error) {
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId": t.UserId,
+		"userId":       t.UserId,
 		"tokenVersion": t.TokenVersion,
 		"exp":          t.Exp,
 	})
@@ -124,7 +124,7 @@ func RefreshTokenHandler(config *types.Config, userRepo *repository.UserRepo) fi
 	}
 }
 
-func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config, userRepo *repository.UserRepo) fiber.Handler {
+func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config, userRepo *repository.UserRepo, bookmarkRepo *repository.BookmarksRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		state := c.FormValue("state")
 
@@ -134,9 +134,6 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 
 		code := c.FormValue("code")
 		if code == "" {
-			c.JSON(fiber.Map{
-				"error": "no code provided",
-			})
 			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
@@ -173,6 +170,15 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 				TokenVersion: 0,
 			}
 			_, err = userRepo.CreateUser(usr)
+			if err != nil {
+				return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
+			}
+			bookmarkList := &types.BookmarkList{
+				UserId: usr.Id,
+				Title:  "Home",
+				Public: false,
+			}
+			_, err = bookmarkRepo.CreateBookmarkList(bookmarkList)
 		}
 
 		refreshToken, err := CreateToken(&types.AuthTokenClaims{
@@ -182,7 +188,7 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 		}, config.RefreshKey)
 
 		if err != nil {
-			return err
+			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
 		cookie := &fiber.Cookie{

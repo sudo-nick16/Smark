@@ -2,7 +2,10 @@ import { getItem } from "../store/storageApi";
 import { BookmarkListWithChildren, Event } from "../types";
 
 export const processEvents = async (bookmarks: BookmarkListWithChildren[]) => {
-  const pendingEvents = await getItem<Event[]>("smark_events", []);
+  const pendingEvents = await getItem<Event[]>("smark_events", [{
+    type: "create_list",
+    data: { title: "Home" },
+  }]);
   for (let event of pendingEvents) {
     switch (event.type) {
       case "create_bookmark": {

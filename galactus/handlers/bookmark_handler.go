@@ -46,7 +46,6 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 						if err != nil {
 							return nil, failedSyncError
 						}
-						bl.UserId = userId
 						list, _ := bookmarksRepo.GetBookmarkListByTitle(bl.Title, userId)
 						if list == nil {
 							_, err = bookmarksRepo.CreateBookmarkList(&bl)

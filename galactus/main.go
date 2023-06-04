@@ -32,13 +32,13 @@ func main() {
 		log.Panic("Couldn't connect to mongodb.")
 	}
 
-    googleOauthConf := &oauth2.Config{
-        ClientID: config.GoogleConfig.ClientId,
-        ClientSecret: config.GoogleConfig.ClientSecret,
-        RedirectURL: config.GoogleConfig.RedirectUrl,
-        Scopes: config.GoogleConfig.Scopes,
-        Endpoint: google.Endpoint,
-    }
+	googleOauthConf := &oauth2.Config{
+		ClientID:     config.GoogleConfig.ClientId,
+		ClientSecret: config.GoogleConfig.ClientSecret,
+		RedirectURL:  config.GoogleConfig.RedirectUrl,
+		Scopes:       config.GoogleConfig.Scopes,
+		Endpoint:     google.Endpoint,
+	}
 
 	userRepo := repository.NewUserRepo(client)
 	bookmarkRepo := repository.NewBookmarkRepo(client)
@@ -58,7 +58,7 @@ func main() {
 	})
 
 	corsMiddleware := cors.New(cors.Config{
-		AllowOrigins:    config.Origin, 
+		AllowOrigins:     config.Origin,
 		AllowCredentials: true,
 	})
 
@@ -82,7 +82,7 @@ func main() {
 
 	app.Get("/oauth/chrome", handlers.ChromeAuthHandler(config, userRepo))
 
-	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, googleOauthConf, userRepo), corsMiddleware)
+	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, googleOauthConf, userRepo, bookmarkRepo), corsMiddleware)
 
 	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout(config))
 
