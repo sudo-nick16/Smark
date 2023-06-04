@@ -13,6 +13,8 @@ import (
 	"github.com/sudo-nick16/smark/galactus/repository"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 func syncHandler(c *fiber.Ctx) error {
@@ -29,6 +31,14 @@ func main() {
 	if err != nil {
 		log.Panic("couldn't connect to mongodb.")
 	}
+
+    googleOauthConf := &oauth2.Config{
+        ClientID: config.GoogleConfig.ClientId,
+        ClientSecret: config.GoogleConfig.ClientSecret,
+        RedirectURL: config.GoogleConfig.RedirectUrl,
+        Scopes: config.GoogleConfig.Scopes,
+        Endpoint: google.Endpoint,
+    }
 
 	userRepo := repository.NewUserRepo(client)
 	bookmarkRepo := repository.NewBookmarkRepo(client)
@@ -72,7 +82,7 @@ func main() {
 
 	app.Get("/oauth/chrome", handlers.ChromeAuthHandler(config, userRepo))
 
-	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, userRepo), corsMiddleware)
+	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, googleOauthConf, userRepo), corsMiddleware)
 
 	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
 
