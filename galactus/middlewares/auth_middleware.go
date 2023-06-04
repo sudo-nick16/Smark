@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,18 +14,14 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tokenFromHeader := c.GetReqHeaders()["Authorization"]
 
-		log.Printf("Cookie in the middleware: %v\n", c.Cookies("smark", ""))
-
-		log.Printf("Token from header: %v\n", tokenFromHeader)
 		if tokenFromHeader == "" {
 			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
 		}
-        headerParts := strings.Split(tokenFromHeader, " ")
-        if len(headerParts) < 2 {
-            return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
-        }
+		headerParts := strings.Split(tokenFromHeader, " ")
+		if len(headerParts) < 2 {
+			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
+		}
 		accessToken := headerParts[1]
-		log.Printf("access token: %v\n", accessToken)
 
 		token, err := jwt.Parse(accessToken, func(t *jwt.Token) (interface{}, error) {
 			if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
@@ -35,7 +30,6 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 			return []byte(config.AccessKey), nil
 		})
 		if err != nil {
-			log.Printf("Error parsing token: %v\n", err)
 			return fiber.NewError(fiber.StatusUnauthorized, "token is invalid")
 		}
 		tokenClaims := token.Claims.(jwt.MapClaims)

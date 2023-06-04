@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -25,7 +24,6 @@ import (
 func CreateToken(t *types.AuthTokenClaims, key string) (string, error) {
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": t.UserId,
-		// "username":     t.Username,
 		"tokenVersion": t.TokenVersion,
 		"exp":          t.Exp,
 	})
@@ -74,23 +72,19 @@ func GoogleAuthflowHandler(config *types.Config) fiber.Handler {
 func RefreshTokenHandler(config *types.Config, userRepo *repository.UserRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tokenStr := c.Cookies("smark", "")
-		log.Printf("token string: %v\n", tokenStr)
 		if tokenStr == "" {
 			return fiber.NewError(fiber.StatusUnauthorized, "no token provided")
 		}
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			log.Printf("received token: %v\n", token)
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
 			return []byte(config.RefreshKey), nil
 		})
-		log.Printf("parsed token: %v\n", token)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 		}
 		claims := token.Claims.(jwt.MapClaims)
-		log.Printf("claims: %v\n", claims)
 
 		if claims["userId"] == nil {
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
@@ -103,15 +97,12 @@ func RefreshTokenHandler(config *types.Config, userRepo *repository.UserRepo) fi
 		}
 		id := claims["userId"].(string)
 
-		log.Printf("UserId: %v\n", id)
-
 		uid, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
 		}
 		user, err := userRepo.GetUserById(uid)
 		if err != nil {
-			log.Printf("error: %v\n", err)
 			return fiber.NewError(fiber.StatusUnauthorized, "user not found")
 		}
 		if user.TokenVersion > int(claims["tokenVersion"].(float64)) {
@@ -165,8 +156,6 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 			return c.Redirect(config.ClientUrl, fiber.StatusTemporaryRedirect)
 		}
 
-		log.Printf("response: %v\n", string(response))
-
 		user := types.GoogleUser{}
 
 		json.Unmarshal(response, &user)
@@ -193,17 +182,24 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 		}, config.RefreshKey)
 
 		if err != nil {
-			log.Println("error while creating refresh token: ", err)
 			return err
 		}
 
-		c.Cookie(&fiber.Cookie{
+		cookie := &fiber.Cookie{
 			Name:     "smark",
 			Value:    refreshToken,
 			Secure:   true,
 			Expires:  time.Now().Add(time.Hour * 24 * 7),
 			HTTPOnly: true,
-		})
+		}
+
+		if config.IsProduction {
+			cookie.SameSite = "None"
+		} else {
+			cookie.SameSite = "Lax"
+		}
+
+		c.Cookie(cookie)
 
 		return c.Redirect(config.ClientUrl)
 	}
@@ -211,18 +207,12 @@ func GoogleCallbackHandler(config *types.Config, googleOauthConf *oauth2.Config,
 
 func ChromeAuthHandler(config *types.Config, userRepo *repository.UserRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		log.Print("Chrome auth")
-
-		cookie := c.Cookies("smark")
-		log.Printf("cookie: %v\n", cookie)
-
 		token := c.Query("token", "")
 		if token == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "no code provided",
 			})
 		}
-		log.Printf("token: %v\n", token)
 
 		req, err := http.NewRequest(
 			"GET",
@@ -277,49 +267,53 @@ func ChromeAuthHandler(config *types.Config, userRepo *repository.UserRepo) fibe
 			_, err = userRepo.CreateUser(usr)
 		}
 
-		log.Printf("user: %v\n", usr)
-
 		refreshToken, err := CreateToken(&types.AuthTokenClaims{
-			UserId: usr.Id,
-			// Username:     usr.UserName,
+			UserId:       usr.Id,
 			TokenVersion: usr.TokenVersion,
 			Exp:          time.Now().Add(time.Hour * 24 * 7).Unix(),
 		}, config.RefreshKey)
 
-		log.Printf("refreshToken: %v\n", refreshToken)
-
 		if err != nil {
-			log.Println("error while creating refresh token: ", err)
 			return err
 		}
 
-		c.Cookie(&fiber.Cookie{
+		cookie := &fiber.Cookie{
 			Name:     "smark",
 			Value:    refreshToken,
 			Secure:   true,
-			SameSite: "None",
 			Expires:  time.Now().Add(time.Hour * 24 * 7),
 			HTTPOnly: true,
-		})
+		}
+
+		if config.IsProduction {
+			cookie.SameSite = "None"
+		} else {
+			cookie.SameSite = "Lax"
+		}
+
+		c.Cookie(cookie)
 
 		return c.JSON(fiber.Map{
 			"msg": "user authenticated",
 		})
-		// fmt.Printf("Token struct from google: %v\nClaims: %v", t, t.Claims)
 	}
 }
 
-func Logout() fiber.Handler {
+func Logout(config *types.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		log.Print("Logout")
-		c.Cookie(&fiber.Cookie{
+		cookie := &fiber.Cookie{
 			Name:     "smark",
 			Value:    "",
-			Secure:   true,
 			SameSite: "None",
 			Expires:  time.Now(),
 			HTTPOnly: true,
-		})
+		}
+		if config.IsProduction {
+			cookie.SameSite = "None"
+		} else {
+			cookie.SameSite = "Lax"
+		}
+		c.Cookie(cookie)
 		return c.JSON(fiber.Map{
 			"msg": "user logged out",
 		})

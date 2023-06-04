@@ -30,6 +30,7 @@ func setupConfig() *types.Config {
 				"https://www.googleapis.com/auth/userinfo.profile",
 			}, ","),
 		},
-        OauthStateString: env.GetEnv("OAUTH_STATE_STRING", "23fspstg67ljmgtp56jmgs567"),
+		OauthStateString: env.GetEnv("OAUTH_STATE_STRING", "23fspstg67ljmgtp56jmgs567"),
+        IsProduction: env.GetEnvAsBool("IS_PRODUCTION", false),
 	}
 }

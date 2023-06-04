@@ -55,6 +55,7 @@ type Config struct {
 	ServerUrl        string
 	GoogleConfig     GoogleConfig
 	OauthStateString string
+	IsProduction     bool
 }
 
 type GoogleConfig struct {

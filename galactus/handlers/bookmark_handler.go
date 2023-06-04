@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -32,9 +31,6 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 		if err != nil {
 			return err
 		}
-		log.Printf("Request body: %v", requestBody)
-
-		log.Printf("Events: %v", requestBody.Events)
 
 		events := requestBody.Events
 
@@ -47,7 +43,6 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 						bl.UserId = userId
 						bl.Public = false
 						err := mapstructure.Decode(v.Data, &bl)
-						log.Printf("Create list event data: %v", bl)
 						if err != nil {
 							return nil, failedSyncError
 						}
@@ -59,9 +54,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 								return nil, failedSyncError
 							}
 						}
-						// continue
-						log.Printf("list already exists: %v", bl.Title)
-						// return nil, fiber.NewError(fiber.StatusBadRequest, "list already exists")
+						// continue if list already exists
 						break
 					}
 				case types.UpdateListTitleEvent:
@@ -202,7 +195,6 @@ func GetBookmarks(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
 		}
 		userId := authCtx.UserId
 		bookmarks, err := bookmarksRepo.GetBookmarks(userId)
-		log.Printf("bookmarks: %v", bookmarks)
 		if err != nil {
 			return fiber.NewError(fiber.StatusOK, "no bookmarks found")
 		}
@@ -230,7 +222,6 @@ func GetPublicList(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
 			return fiber.NewError(fiber.StatusBadRequest, "invalid bookmark list id.")
 		}
 		bookmarkList, err := bookmarksRepo.GetBookmarkListById(id, uid)
-		log.Printf("bookmark list: %v", bookmarkList)
 		if err != nil {
 			return fiber.NewError(fiber.StatusOK, "list not found.")
 		}
@@ -244,7 +235,6 @@ func GetPublicList(bookmarksRepo *repository.BookmarksRepo) fiber.Handler {
 			UserId: bookmarkList.UserId,
 		}
 		listWithChildren.Children, err = bookmarksRepo.GetBookmarksByListId(bookmarkList.Id, bookmarkList.UserId)
-		log.Printf("children: %v", listWithChildren.Children)
 		if err != nil {
 			listWithChildren.Children = &[]types.Bookmark{}
 		}
@@ -268,7 +258,6 @@ func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config)
 			return fiber.NewError(fiber.StatusBadRequest, "invalid title")
 		}
 		bookmarkList, err := bookmarksRepo.GetBookmarkListByTitle(title, userId)
-		log.Printf("bookmarks: %v", bookmarkList)
 		if err != nil {
 			return fiber.NewError(fiber.StatusOK, "no bookmarks found")
 		}

@@ -58,7 +58,7 @@ const AuthModal: React.FC<AuthModalProps> = () => {
     return (
         <>
             {show &&
-                <div className='fixed z-10 backdrop-blur-sm h-[100dvh] w-full flex items-center justify-center'>
+                <div className='fixed z-50 backdrop-blur-sm h-[100dvh] w-full flex items-center justify-center'>
                     <div className='bg-black px-14 py-8 rounded-xl s-shadow flex flex-col items-center justify-center relative'>
                         <img
                             src={close} alt="close" className='h-4 w-4 absolute top-3 left-3 cursor-pointer'

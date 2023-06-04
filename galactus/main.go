@@ -29,7 +29,7 @@ func main() {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DbUrl))
 	if err != nil {
-		log.Panic("couldn't connect to mongodb.")
+		log.Panic("Couldn't connect to mongodb.")
 	}
 
     googleOauthConf := &oauth2.Config{
@@ -84,7 +84,7 @@ func main() {
 
 	app.Get("/oauth/google/callback", handlers.GoogleCallbackHandler(config, googleOauthConf, userRepo), corsMiddleware)
 
-	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout())
+	app.Post("/logout", middlewares.AuthMiddleware(config), handlers.Logout(config))
 
 	app.Listen(":" + config.Port)
 }

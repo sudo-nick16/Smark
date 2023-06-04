@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"log"
 
 	"github.com/sudo-nick16/smark/galactus/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -163,7 +162,6 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("listTitle: %v, userId: %v", list.Title, uid)
 
 		bmCur, err := b.coll.Find(context.TODO(), bson.M{
 			"listTitle": list.Title,
@@ -182,8 +180,6 @@ func (b *BookmarksRepo) GetBookmarks(uid primitive.ObjectID) (*[]types.BookmarkL
 		}
 
 		list.Children = &bms
-
-		log.Printf("list children: %v", list.Children)
 
 		bookmarks = append(bookmarks, list)
 	}
@@ -232,7 +228,7 @@ func (b *BookmarksRepo) GetBookmarksByListId(lid, uid primitive.ObjectID) (*[]ty
 func (b *BookmarksRepo) GetBookmarksByListTitle(listTitle, uid primitive.ObjectID) (*[]types.Bookmark, error) {
 	resCur, err := b.coll.Find(context.TODO(), bson.M{
 		"listTitle": listTitle,
-		"userId": uid,
+		"userId":    uid,
 	})
 	bookmarks := []types.Bookmark{}
 	err = resCur.All(context.Background(), &bookmarks)
