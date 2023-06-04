@@ -125,12 +125,12 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					{
 						data := struct {
 							OldTitle  string `json:"oldTitle"`
-							Title     string `json:"title"`
+							NewTitle     string `json:"newTitle"`
 							ListTitle string `json:"listTitle"`
 							Url       string `json:"url"`
 						}{}
 						mapstructure.Decode(v.Data, &data)
-						err := bookmarksRepo.UpdateBookmark(data.Url, data.Title, data.OldTitle, userId, data.ListTitle)
+						err := bookmarksRepo.UpdateBookmark(data.Url, data.NewTitle, data.OldTitle, userId, data.ListTitle)
 						if err != nil {
 							return nil, err
 						}
