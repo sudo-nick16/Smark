@@ -146,7 +146,8 @@ const App: React.FC<AppProps> = () => {
           }
           return false;
         },
-        effect: async (_) => {
+        effect: async (action) => {
+          console.log({ action })
           const events = await getItem<Event[]>("smark_events", []);
           const res = await api.post("/sync", { events });
           if (!res.data.error) {

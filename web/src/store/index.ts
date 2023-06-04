@@ -44,11 +44,11 @@ export const bookmarks = createSlice({
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
-    builder.addCase(deleteList.fulfilled, (state, action) => {
+    builder.addCase(updateListTitle.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
-    builder.addCase(updateListTitle.fulfilled, (state, action) => {
+    builder.addCase(deleteList.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
@@ -60,11 +60,11 @@ export const bookmarks = createSlice({
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
-    builder.addCase(deleteBookmark.fulfilled, (state, action) => {
+    builder.addCase(updateBookmark.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
-    builder.addCase(updateBookmark.fulfilled, (state, action) => {
+    builder.addCase(deleteBookmark.fulfilled, (state, action) => {
       state.bookmarks = action.payload.bookmarks;
       state.events = action.payload.events;
     });
@@ -236,7 +236,7 @@ const bookmarkUpdateModal = createSlice({
       state.title = action.payload.title;
       state.oldTitle = action.payload.title;
       state.listTitle = action.payload.listTitle;
-      state.isOpen = !state.isOpen;
+      state.isOpen = true
     },
     setBookmarkTitle: (state, action: PayloadAction<string>) => {
       state.title = action.payload;

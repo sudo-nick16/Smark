@@ -55,12 +55,10 @@ const Input: React.FC<InputProps> = ({ searchRef, className = "" }) => {
     if (e.key === "Enter" && !e.shiftKey) {
       switch (inputInfo.mode) {
         case "cu": {
-          console.log(
-            "Adding the url",
-            inputInfo.currentValue,
-            " to the list ",
-            currentList
-          );
+          if (inputInfo.currentValue.trim().length === 0) {
+            return;
+
+            }
           appDispatch(
             createBookmark({
               listTitle: currentList,

@@ -136,6 +136,13 @@ func (b *BookmarksRepo) DeleteBookmarkList(title string, uid primitive.ObjectID)
 	if err != nil {
 		return err
 	}
+	_, err = b.coll.DeleteMany(context.TODO(), bson.M{
+		"userId":    uid,
+		"listTitle": title,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
