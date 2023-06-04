@@ -49,6 +49,17 @@ func (b *BookmarksRepo) UpdateBookmarkListTitle(newTitle, oldTitle string, uid p
 	if err != nil {
 		return err
 	}
+	_, err = b.coll.UpdateMany(context.TODO(), bson.M{
+		"userId":    uid,
+		"listTitle": oldTitle,
+	}, bson.M{
+		"$set": bson.M{
+			"listTitle": newTitle,
+		},
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

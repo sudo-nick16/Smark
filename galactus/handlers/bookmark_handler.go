@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -60,10 +62,10 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					{
 						data := struct {
 							OldTitle string `json:"oldTitle"`
-							Title    string `json:"title"`
+							NewTitle string `json:"newTitle"`
 						}{}
 						mapstructure.Decode(v.Data, &data)
-						err := bookmarksRepo.UpdateBookmarkListTitle(data.Title, data.OldTitle, userId)
+						err := bookmarksRepo.UpdateBookmarkListTitle(data.NewTitle, data.OldTitle, userId)
 						if err != nil {
 							return nil, failedSyncError
 						}
@@ -125,7 +127,7 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 					{
 						data := struct {
 							OldTitle  string `json:"oldTitle"`
-							NewTitle     string `json:"newTitle"`
+							NewTitle  string `json:"newTitle"`
 							ListTitle string `json:"listTitle"`
 							Url       string `json:"url"`
 						}{}
@@ -253,6 +255,10 @@ func GetShareLink(bookmarksRepo *repository.BookmarksRepo, config *types.Config)
 		}
 		userId := authCtx.UserId
 		title := c.Params("title")
+		title, err := url.PathUnescape(title)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "invalid title")
+		}
 		if title == "" {
 			return fiber.NewError(fiber.StatusBadRequest, "invalid title")
 		}
