@@ -13,6 +13,7 @@ import { getItem, setItem } from "../store/storageApi";
 import useAxios from "../utils/useAxios";
 import settingsIcon from "../assets/settings-gear-icon.png";
 import useSnackBarUtils from "../utils/useSnackBar";
+import { processEvents } from "../utils/processEvents";
 
 type ProfileProps = {};
 
@@ -74,6 +75,19 @@ const Profile: React.FC<ProfileProps> = () => {
     showError("Couldn't sync");
   };
 
+
+  const fetchHandler = async () => {
+    console.log("fetching");
+    const res = await api.get("/bookmarks");
+    console.log(res);
+    if (res.data.bookmarks) {
+      const bm = await processEvents(res.data.bookmarks);
+      appDispatch(setBookmarks(bm));
+      showSuccess("Fetched successfully");
+      return;
+    }
+  };
+
   return !authState.user ? (
     <div className="py-3 px-4 mb-[4.5rem] lg:mb-0 flex items-center">
       <div
@@ -108,11 +122,18 @@ const Profile: React.FC<ProfileProps> = () => {
           <h1 className="font-bold text-base leading-tight line-clamp-1 mb-2">
             {authState.user.name}
           </h1>
-          <Tag
-            title={synced ? "synced" : "sync"}
-            className={`${synced ? "bg-green-600" : "bg-yellow-600"}`}
-            onClick={syncBookmarks}
-          />
+          <div className="flex gap-x-3">
+            <Tag
+              title={synced ? "synced" : "sync"}
+              className={`${synced ? "bg-green-600" : "bg-yellow-600"}`}
+              onClick={syncBookmarks}
+            />
+            <Tag
+              title="fetch"
+              className=""
+              onClick={fetchHandler}
+            />
+          </div>
         </div>
         <img
           onClick={() => {

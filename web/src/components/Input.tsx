@@ -53,12 +53,11 @@ const Input: React.FC<InputProps> = ({ searchRef, className = "" }) => {
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      switch (inputInfo.mode) {
+      switch (inputInfo.mode.toLowerCase()) {
         case "cu": {
           if (inputInfo.currentValue.trim().length === 0) {
             return;
-
-            }
+          }
           appDispatch(
             createBookmark({
               listTitle: currentList,
@@ -81,7 +80,6 @@ const Input: React.FC<InputProps> = ({ searchRef, className = "" }) => {
         }
         case "su": {
           searchRef.current!.blur();
-          // appDispatch(setInputValue(""));
           break;
         }
         case "sl": {

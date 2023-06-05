@@ -33,9 +33,7 @@ const BookmarkList: React.FC<{ className?: string }> = ({ className = "" }) => {
     } else if (input.mode === "sa") {
       return (
         bookmarks
-          .map((b) => b.children)
-          .flat()
-          .filter(
+          .map((b) => b.children).flat().filter(
             (b) =>
               b.title
                 .toLowerCase()

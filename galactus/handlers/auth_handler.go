@@ -287,14 +287,9 @@ func ChromeAuthHandler(config *types.Config, userRepo *repository.UserRepo) fibe
 			Name:     "smark",
 			Value:    refreshToken,
 			Secure:   true,
+			SameSite: "None",
 			Expires:  time.Now().Add(time.Hour * 24 * 7),
 			HTTPOnly: true,
-		}
-
-		if config.IsProduction {
-			cookie.SameSite = "None"
-		} else {
-			cookie.SameSite = "Lax"
 		}
 
 		c.Cookie(cookie)
