@@ -57,7 +57,7 @@ const BookmarkList: React.FC<{ className?: string }> = ({ className = "" }) => {
         id="urllist-container"
       >
         {getBookmarks().map((e, i) => (
-          <BookmarkItem index={i} bookmark={e} key={i} />
+          <BookmarkItem bookmark={e} key={i} />
         ))}
       </div>
     </div>

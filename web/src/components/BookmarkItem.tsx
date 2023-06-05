@@ -7,12 +7,12 @@ import { Bookmark } from "../types";
 
 type BookmarkItemProps = {
     bookmark: Bookmark;
-    index: number;
+    showControls?: boolean;
 };
 
 const BookmarkItem: React.FC<BookmarkItemProps> = ({
     bookmark: { title, url, img, listTitle },
-    index,
+    showControls = true,
 }) => {
     const appDispatch = useAppDispatch();
 
@@ -29,7 +29,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
     const deleteHandler = () => {
         appDispatch(deleteBookmark({ title, listTitle }));
     };
-     
+
     return (
         <div
             draggable
@@ -54,20 +54,22 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
                     {url}
                 </a>
             </div>
-            <div className="bg-dark-gray flex items-center py-1 rounded-lg px-1">
-                <div
-                    onClick={deleteHandler}
-                    className="hover:bg-[#4E4E4E] flex items-center justify-center py-1 opacity-40 hover:opacity-100 rounded-md cursor-pointer"
-                >
-                    <img src={bin} alt="delete" className="h-4 w-4 mx-2" />
+            {showControls && (
+                <div className="bg-dark-gray flex items-center py-1 rounded-lg px-1">
+                    <div
+                        onClick={deleteHandler}
+                        className="hover:bg-[#4E4E4E] flex items-center justify-center py-1 opacity-40 hover:opacity-100 rounded-md cursor-pointer"
+                    >
+                        <img src={bin} alt="delete" className="h-4 w-4 mx-2" />
+                    </div>
+                    <div
+                        onClick={editHandler}
+                        className="hover:bg-[#4E4E4E] flex items-center justify-center py-1 opacity-40 hover:opacity-100 rounded-md cursor-pointer"
+                    >
+                        <img src={edit} alt="edit" className="h-4 w-4 mx-2" />
+                    </div>
                 </div>
-                <div
-                    onClick={editHandler}
-                    className="hover:bg-[#4E4E4E] flex items-center justify-center py-1 opacity-40 hover:opacity-100 rounded-md cursor-pointer"
-                >
-                    <img src={edit} alt="edit" className="h-4 w-4 mx-2" />
-                </div>
-            </div>
+            )}
         </div>
     );
 };

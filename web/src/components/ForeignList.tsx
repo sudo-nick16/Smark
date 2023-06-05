@@ -115,7 +115,7 @@ const ForeignList: React.FC<ForeignListProps> = ({ className = "" }) => {
               id="urllist-container"
             >
               {bookmarkList.children.map((bm, i) => {
-                return <BookmarkItem index={i} bookmark={bm} key={i} />;
+                return <BookmarkItem showControls={false} bookmark={bm} key={i} />;
               })}
             </div>
           )}
