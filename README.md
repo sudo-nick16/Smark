@@ -10,4 +10,4 @@ A bookmarking tool.
 ##### Architecture:
 - designed to enable offline management of urls.
 
-![Untitled-2023-01-22](https://github.com/sudo-nick16/smark-v3/assets/73229823/6badc360-1e57-4d6c-b3ab-7f1f93960b11)
+![smark-arch](https://raw.githubusercontent.com/sudo-nick16/smark/master/smark-arch.png)
