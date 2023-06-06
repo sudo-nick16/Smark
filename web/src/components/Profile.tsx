@@ -72,12 +72,11 @@ const Profile: React.FC<ProfileProps> = () => {
       showSuccess("Synced successfully");
       return;
     }
+    navigate("/");
     showError("Couldn't sync");
   };
 
-
   const fetchHandler = async () => {
-    console.log("fetching");
     const res = await api.get("/bookmarks");
     console.log(res);
     if (res.data.bookmarks) {
@@ -86,6 +85,8 @@ const Profile: React.FC<ProfileProps> = () => {
       showSuccess("Fetched successfully");
       return;
     }
+    navigate("/");
+    showError("Couldn't fetch");
   };
 
   return !authState.user ? (
@@ -116,7 +117,11 @@ const Profile: React.FC<ProfileProps> = () => {
                 mb-[4.5rem] lg:mb-0 overflow-hidden"
       >
         <div className="w-fit mr-3" onClick={goToAccount}>
-          <img className="h-10 w-10" src={authState.user.img} alt="profile" />
+          <img
+            className="h-10 w-10 cursor-pointer"
+            src={authState.user.img}
+            alt="profile"
+          />
         </div>
         <div className="grow flex flex-col px-3">
           <h1 className="font-bold text-base leading-tight line-clamp-1 mb-2">
@@ -128,11 +133,7 @@ const Profile: React.FC<ProfileProps> = () => {
               className={`${synced ? "bg-green-600" : "bg-yellow-600"}`}
               onClick={syncBookmarks}
             />
-            <Tag
-              title="fetch"
-              className=""
-              onClick={fetchHandler}
-            />
+            <Tag title="fetch" className="" onClick={fetchHandler} />
           </div>
         </div>
         <img

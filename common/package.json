@@ -1,0 +1,9 @@
+{
+  "name": "@smark/common",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "scripts": {
+      "build": "rm -rf dist/* && tsc"
+  }
+}

@@ -30,18 +30,16 @@ const Input: React.FC<InputProps> = ({ searchRef, className = "" }) => {
     sl: "search lists",
     cu: "create url",
     cl: "create list",
-    du: "delete urls",
-    dl: "delete lists",
   };
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const str = event.target.value.trimStart();
     if (str.length == 3) {
       // @ts-ignore
-      if (cmdMap[str.trimEnd()]) {
+      if (cmdMap[str.toLowerCase().trimEnd()]) {
         appDispatch(
           setInput({
-            mode: str.trimEnd(),
+            mode: str.toLowerCase().trimEnd(),
             currentValue: "",
           })
         );

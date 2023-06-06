@@ -19,7 +19,7 @@ import {
   setBookmarksFromStorage,
 } from "./store/asyncActions";
 import { useSelector } from "react-redux";
-import { getItem, setItem } from "./store/storageApi";
+import { getItem } from "./store/storageApi";
 import Input from "./components/Input";
 import MidPanel from "./components/MidPanel";
 import KeyListener from "./components/KeyListener";
@@ -70,9 +70,7 @@ const App: React.FC<AppProps> = () => {
       showError("Couldn't fetch from api.");
     };
 
-    if (!isChrome()) {
-      initStateFromApi();
-    }
+    initStateFromApi();
 
     const fetchRefreshToken = async () => {
       try {
@@ -134,30 +132,28 @@ const App: React.FC<AppProps> = () => {
 
     setDefaultListAtStartup();
 
-    const unsubscribe = isChrome()
-      ? undefined
-      : smarkEventsListener.startListening({
-        predicate: (action) => {
-          if (
-            action.type.startsWith("bookmark") &&
-            action.type.endsWith("fulfilled")
-          ) {
-            return true;
-          }
-          return false;
-        },
-        effect: async (action) => {
-          console.log({ action })
-          const events = await getItem<Event[]>("smark_events", []);
-          const res = await api.post("/sync", { events });
-          if (!res.data.error) {
-            appDispatch(clearSmarkEvents());
-          }
-        },
-      });
+    const unsubscribe = smarkEventsListener.startListening({
+      predicate: (action) => {
+        if (
+          action.type.startsWith("bookmark") &&
+          action.type.endsWith("fulfilled")
+        ) {
+          return true;
+        }
+        return false;
+      },
+      effect: async (action) => {
+        console.log({ action });
+        const events = await getItem<Event[]>("smark_events", []);
+        const res = await api.post("/sync", { events });
+        if (!res.data.error) {
+          appDispatch(clearSmarkEvents());
+        }
+      },
+    });
 
     return () => {
-      unsubscribe && unsubscribe();
+      unsubscribe();
     };
   }, []);
 

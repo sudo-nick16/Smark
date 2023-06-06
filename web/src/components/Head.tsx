@@ -88,7 +88,7 @@ const Head: React.FC<HeadProps> = ({}) => {
             handleTitleBlur();
           }}
           listenerState={editable}
-          className={`font-bold text-lg sm:text-xl px-2 outline-none rounded-md line-clamp-2 ${
+          className={`font-bold text-lg sm:text-xl px-2 outline-none rounded-md break-all line-clamp-2 ${
             editable ? "border-2 border-white" : ""
           }`}
           ref={listTitleRef}

@@ -57,8 +57,9 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
             listenerState={matches && visible}
             onOutsideClick={() => appDispatch(closeSideBar())}
             as="div"
-            className={`h-[100dvh] w-[20rem] min-w-[20rem] flex flex-col fixed bg-black z-10 shadow-xl transition-all duration-100 shadow-dark-gray ${!visible ? "-translate-x-full" : ""
-                } lg:translate-x-0 lg:shadow-none lg:static ${className}`}
+            className={`h-[100dvh] w-[20rem] min-w-[20rem] flex flex-col fixed bg-black z-10 shadow-xl transition-all duration-100 shadow-dark-gray ${
+                !visible ? "-translate-x-full" : ""
+            } lg:translate-x-0 lg:shadow-none lg:static ${className}`}
         >
             <div className="ml-4 h-[4.5rem] flex px-4 items-center justify-between">
                 <img
@@ -77,12 +78,13 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
             <div className="mt-2 py-4 px-4 grow w-full max-h-full overflow-y-auto flex flex-col">
                 {(input.mode === "sl"
                     ? bookmarkList.filter(
-                        (e) =>
-                            e.title === "Home" ||
-                            e.title
-                                .toLowerCase()
-                                .indexOf(input.currentValue.toLowerCase()) !== -1
-                    )
+                          (e) =>
+                              e.title === "Home" ||
+                              e.title
+                                  .toLowerCase()
+                                  .indexOf(input.currentValue.toLowerCase()) !==
+                                  -1
+                      )
                     : bookmarkList
                 ).map((ele, i) => {
                     return (
@@ -91,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
                             key={i}
                             className={`flex !text-lg items-center py-2 px-4 2xl:py-[10px]
                                 ${ele.title === currentList && "bg-light-gray"}
-                               transition-all duration-75 bg-opacity-50
+                               transition-all line-clamp-1 overflow-hidden break-all duration-75 bg-opacity-50
                                 w-full hover:bg-dark-gray hover:bg-opacity-70 
                                 hover:cursor-pointer rounded-3xl font-semibold`}
                         >
