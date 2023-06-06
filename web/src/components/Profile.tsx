@@ -70,9 +70,10 @@ const Profile: React.FC<ProfileProps> = () => {
     if (!res.data.error) {
       appDispatch(clearSmarkEvents());
       showSuccess("Synced successfully");
+      appDispatch(toggleSideBar());
       return;
     }
-    navigate("/");
+    appDispatch(toggleSideBar());
     showError("Couldn't sync");
   };
 
@@ -83,9 +84,10 @@ const Profile: React.FC<ProfileProps> = () => {
       const bm = await processEvents(res.data.bookmarks);
       appDispatch(setBookmarks(bm));
       showSuccess("Fetched successfully");
+      appDispatch(toggleSideBar());
       return;
     }
-    navigate("/");
+    appDispatch(toggleSideBar());
     showError("Couldn't fetch");
   };
 
