@@ -31,7 +31,6 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
         RootState,
         RootState["bookmarks"]["bookmarks"]
     >((state) => state.bookmarks.bookmarks);
-    console.log({ bookmarkList });
     const currentList = useSelector<RootState, RootState["currentList"]>(
         (state) => state.currentList
     );
@@ -41,7 +40,6 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
         appDispatch(setInput({ ...input, currentValue: "", mode: "" }));
         appDispatch(toggleSideBar());
         if (location.pathname !== "/") {
-            console.log("navigating to /");
             navigate("/");
         }
     };
@@ -63,7 +61,10 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
         >
             <div className="ml-4 h-[4.5rem] flex px-4 items-center justify-between">
                 <img
-                    onClick={() => navigate("/")}
+                    onClick={() => {
+                        appDispatch(closeSideBar());
+                        navigate("/");
+                    }}
                     src={smark}
                     alt="smark"
                     className="h-10 w-auto cursor-pointer"

@@ -15,11 +15,11 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 		tokenFromHeader := c.GetReqHeaders()["Authorization"]
 
 		if tokenFromHeader == "" {
-			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
+			return fiber.NewError(fiber.StatusForbidden, "access token missing.")
 		}
 		headerParts := strings.Split(tokenFromHeader, " ")
 		if len(headerParts) < 2 {
-			return fiber.NewError(fiber.StatusUnauthorized, "access token missing.")
+			return fiber.NewError(fiber.StatusForbidden, "access token missing.")
 		}
 		accessToken := headerParts[1]
 
@@ -30,21 +30,21 @@ func AuthMiddleware(config *types.Config) fiber.Handler {
 			return []byte(config.AccessKey), nil
 		})
 		if err != nil {
-			return fiber.NewError(fiber.StatusUnauthorized, "token is invalid")
+			return fiber.NewError(fiber.StatusForbidden, "token is invalid")
 		}
 		tokenClaims := token.Claims.(jwt.MapClaims)
 		if tokenClaims["userId"] == nil {
-			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+			return fiber.NewError(fiber.StatusForbidden, "invalid token")
 		}
 		if tokenClaims["exp"] == nil {
-			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+			return fiber.NewError(fiber.StatusForbidden, "invalid token")
 		}
 		if tokenClaims["tokenVersion"] == nil {
-			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+			return fiber.NewError(fiber.StatusForbidden, "invalid token")
 		}
 		uid, err := primitive.ObjectIDFromHex(tokenClaims["userId"].(string))
 		if err != nil {
-			return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+			return fiber.NewError(fiber.StatusForbidden, "invalid token")
 		}
 		authContext := &types.AuthTokenClaims{
 			UserId:       uid,

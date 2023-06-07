@@ -48,7 +48,6 @@ const Head: React.FC<HeadProps> = ({}) => {
 
   const getShareableLink = async () => {
     const res = await api.get(`/bookmarks/share/${currentTitle}`);
-    console.log(res);
     if (res.data.shareLink) {
       await navigator.clipboard.writeText(res.data.shareLink);
       showSuccess("Link copied to clipboard");
@@ -96,7 +95,6 @@ const Head: React.FC<HeadProps> = ({}) => {
           suppressContentEditableWarning
           suppressHydrationWarning
           onKeyDown={(e) => {
-            console.log(e.key, e.shiftKey, e.currentTarget.innerText);
             if (e.key === "Enter" && !e.shiftKey) {
               handleTitleBlur();
             }

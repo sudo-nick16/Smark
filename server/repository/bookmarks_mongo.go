@@ -255,3 +255,17 @@ func (b *BookmarksRepo) GetBookmarksByListTitle(listTitle, uid primitive.ObjectI
 	}
 	return &bookmarks, nil
 }
+
+func (b *BookmarksRepo) GetBookmarkByUrl(url , listTitle string, uid primitive.ObjectID) (*types.Bookmark, error) {
+	res := b.coll.FindOne(context.TODO(), bson.M{
+		"listTitle": listTitle,
+		"userId":    uid,
+		"url":    url,
+	})
+	bookmarks := types.Bookmark{}
+    err := res.Decode(&bookmarks)
+	if err != nil {
+		return nil, err
+	}
+	return &bookmarks, nil
+}

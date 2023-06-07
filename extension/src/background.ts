@@ -29,7 +29,7 @@ type BookmarkListWithChildren = {
     children: Bookmark[];
 };
 
-const BASE_SERVER_URL = "http://localhost:42069";
+const BASE_SERVER_URL = "https://smark-production.up.railway.app";
 const MAX_RETRIES_COUNT = 5;
 const EXTENSION_URL =
     "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/";
@@ -103,6 +103,26 @@ async function getCurrentTab() {
     let queryOptions = { active: true, lastFocusedWindow: true };
     let [tab] = await chrome.tabs.query(queryOptions);
     return tab;
+}
+
+async function syncEvents() {
+    const events = await getSmarkEvents();
+    try {
+        const res = await fetch(BASE_SERVER_URL + "/sync", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `JWT ${accessToken}`,
+            },
+            body: JSON.stringify({
+                events,
+            }),
+        });
+        const data = await res.json();
+        return data;
+    } catch (e) {}
+    return undefined;
 }
 
 async function handleOmniBookmarkWithList(listTitle: string, query: string) {
@@ -180,6 +200,38 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
 });
 
 async function fetchAccessToken() {
+    console.log("Fetching access token");
+    try {
+        const res = await fetch(BASE_SERVER_URL + "/refresh-token", {
+            method: "POST",
+            credentials: "include",
+        });
+        const data: { accessToken: string } = await res.json();
+        if (data.accessToken) {
+            accessToken = data.accessToken;
+            accessTokenRetries = 0;
+            return;
+        }
+    } catch (e) {
+        console.log("error while fetching access token: ", e);
+    }
+    accessTokenRetries++;
+}
+
+async function ensureAccessToken() {
+    console.log("Ensuring access token");
+    if (accessToken) {
+        return;
+    }
+    await fetchAccessToken();
+    if (!accessToken && accessTokenRetries <= MAX_RETRIES_COUNT) {
+        setTimeout(async () => {
+            return await ensureAccessToken();
+        }, 10 * 1000);
+    }
+}
+
+async function getAccessToken() {
     // if hasn't already tried or if the token is empty
     if (accessTokenRetries >= MAX_RETRIES_COUNT && accessToken === "") {
         console.log("Max retries reached, cannot refresh the token.");
@@ -210,7 +262,7 @@ async function fetchAccessToken() {
 async function syncBookmarks() {
     console.log("syncing bookmarks");
 
-    await fetchAccessToken();
+    await ensureAccessToken();
 
     if (accessTokenRetries >= MAX_RETRIES_COUNT && accessToken === "") {
         console.log("access token is empty, cannot sync.");
@@ -269,21 +321,13 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 async function addBookmark(bookmark: Bookmark) {
+    const bookmarks = await getBookmarks();
     const smarkEvents = await getSmarkEvents();
     const createBookmarkEvent = {
         type: "create_bookmark",
         data: bookmark,
     };
-    if (!smarkEvents) {
-        await chrome.storage.local.set({
-            smark_events: [createBookmarkEvent],
-        });
-        return;
-    }
     smarkEvents.push(createBookmarkEvent);
-    await setAsyncItem("smark_events", smarkEvents);
-
-    const bookmarks = await getBookmarks();
     bookmarks.forEach((list) => {
         if (list.title === bookmark.listTitle) {
             if (!list.children.find((bm) => bm.url === bookmark.url)) {
@@ -291,7 +335,16 @@ async function addBookmark(bookmark: Bookmark) {
             }
         }
     });
+
+    await setAsyncItem("bookmark_mutex", true);
+    await setAsyncItem("smark_events", smarkEvents);
     await setAsyncItem("bookmarks", bookmarks);
+
+    const data = await syncEvents();
+    if (data && !data.error) {
+        await setAsyncItem("smark_events", []);
+    }
+    await setAsyncItem("bookmark_mutex", false);
 }
 
 chrome.contextMenus.onClicked.addListener(async (_, tab) => {

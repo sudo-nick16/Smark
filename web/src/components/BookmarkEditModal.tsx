@@ -23,8 +23,6 @@ const BookmarkEditModal: React.FC<BookmarkEditModalProps> = ({ }) => {
     title: false,
   });
 
-  console.log({ bookmarkModal })
-
   return bookmarkModal.isOpen ? (
     <OutsideClickWrapper
       as="div"

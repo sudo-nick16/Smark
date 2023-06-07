@@ -19,7 +19,7 @@ import {
   setBookmarksFromStorage,
 } from "./store/asyncActions";
 import { useSelector } from "react-redux";
-import { getItem } from "./store/storageApi";
+import { getItem, setItem } from "./store/storageApi";
 import Input from "./components/Input";
 import MidPanel from "./components/MidPanel";
 import KeyListener from "./components/KeyListener";
@@ -27,7 +27,6 @@ import AuthModal from "./components/AuthModal";
 import BookmarkEditModal from "./components/BookmarkEditModal";
 import SnackBar from "./components/SnackBar";
 import useSnackBarUtils from "./utils/useSnackBar";
-import { isChrome } from "./utils/isChrome";
 import { processEvents } from "./utils/processEvents";
 
 type AppProps = {};
@@ -46,31 +45,21 @@ function diff(
 
 const App: React.FC<AppProps> = () => {
   const searchRef = useRef<HTMLInputElement>(null);
-  const api = useAxios();
   const { showError, showSuccess } = useSnackBarUtils();
-
+  const api = useAxios();
   const appDispatch = useAppDispatch();
-  const bookmarksState = useSelector<RootState, RootState["bookmarks"]>(
-    (state) => state.bookmarks
-  );
-
-  console.log({ bookmarksState });
 
   useEffect(() => {
     appDispatch(setBookmarksFromStorage());
 
-    const initStateFromApi = async () => {
-      const res = await api.get("/bookmarks");
-      if (res.data.bookmarks) {
-        const bm = await processEvents(res.data.bookmarks);
-        appDispatch(setBookmarks(bm));
-        showSuccess("Bookmarks fetched and processed.");
-        return;
+    const fetchMe = async () => {
+      const res = await api.get("/me");
+      console.log("fetching user", res.data);
+      if (!res.data?.error) {
+        appDispatch(setUser(res.data.user));
+        showSuccess(`welcome back ${res.data.user.name}`);
       }
-      showError("Couldn't fetch from api.");
     };
-
-    initStateFromApi();
 
     const fetchRefreshToken = async () => {
       try {
@@ -81,22 +70,40 @@ const App: React.FC<AppProps> = () => {
             withCredentials: true,
           }
         );
-
-        if (!response.data.error && response.data.accessToken) {
+        console.log("refresh token response", response.data);
+        if (!response.data?.error && response.data?.accessToken) {
           appDispatch(setAccessToken(response.data.accessToken));
-          const res = await api.get("/me");
-          if (!res.data.error) {
-            appDispatch(setUser(res.data.user));
-          }
-        } else {
-          appDispatch(logout());
+          return response.data.accessToken;
         }
       } catch (err) {
         console.log(err);
       }
+      appDispatch(logout());
+      return "";
     };
 
-    fetchRefreshToken();
+    const fetchBookmarks = async () => {
+      const res = await api.get("/bookmarks");
+
+      if (res.data?.bookmarks) {
+        const bm = await processEvents(res.data.bookmarks);
+        appDispatch(setBookmarks(bm));
+        showSuccess("Bookmarks fetched and processed.");
+        return;
+      }
+      showError("Couldn't fetch from api.");
+    };
+
+    const initStateFromApi = async () => {
+      const token = await fetchRefreshToken();
+      if (!token) {
+        return;
+      }
+      await fetchMe();
+      await fetchBookmarks();
+    };
+
+    initStateFromApi();
 
     const addStateUpdateListener = <T,>(
       key: string,
@@ -117,9 +124,18 @@ const App: React.FC<AppProps> = () => {
 
     addStateUpdateListener<BookmarkListWithChildren[]>(
       "bookmarks",
-      (oldValue, newValue) => {
+      async (oldValue, newValue) => {
+        if (!oldValue || !newValue) {
+          return;
+        }
         const bookmark = diff(oldValue, newValue);
         if (bookmark) {
+          let mutex = await getItem<boolean>("bookmark_mutex", false);
+          while (mutex) {
+            mutex = await getItem<boolean>("bookmark_mutex", false);
+            continue;
+          }
+          await setItem<boolean>("bookmark_mutex", false);
           appDispatch(setBookmarksFromStorage());
         }
       }
@@ -145,6 +161,9 @@ const App: React.FC<AppProps> = () => {
       effect: async (action) => {
         console.log({ action });
         const events = await getItem<Event[]>("smark_events", []);
+        if (events.length === 0) {
+          return;
+        }
         const res = await api.post("/sync", { events });
         if (!res.data.error) {
           appDispatch(clearSmarkEvents());

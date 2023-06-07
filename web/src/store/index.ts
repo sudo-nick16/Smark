@@ -14,6 +14,7 @@ import {
   createList,
   deleteBookmark,
   deleteList,
+  emptyBookmarkEvent,
   setBookmarks,
   setBookmarksFromStorage,
   updateBookmark,
@@ -236,7 +237,7 @@ const bookmarkUpdateModal = createSlice({
       state.title = action.payload.title;
       state.oldTitle = action.payload.title;
       state.listTitle = action.payload.listTitle;
-      state.isOpen = true
+      state.isOpen = true;
     },
     setBookmarkTitle: (state, action: PayloadAction<string>) => {
       state.title = action.payload;
@@ -312,7 +313,8 @@ export const store = configureStore({
     syncStatus: syncStatus.reducer,
     snackBar: snackBarSlice.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(smarkEventsListener.middleware),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(smarkEventsListener.middleware),
 });
 
 export default store;

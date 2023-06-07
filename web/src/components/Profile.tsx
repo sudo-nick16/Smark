@@ -2,8 +2,10 @@ import React, { useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
+  closeSideBar,
   logout,
   RootState,
+  setUser,
   toggleAuthModal,
   toggleSideBar,
   useAppDispatch,
@@ -49,7 +51,21 @@ const Profile: React.FC<ProfileProps> = () => {
     (state) => state.bookmarks.events.length === 0
   );
 
-  const toggleModal = () => {
+  const toggleModal = async () => {
+    if (authState.accessToken.length > 0) {
+      const res = await api.get("/me");
+      if (res.data.user) {
+        appDispatch(
+          setUser({
+            img: res.data.user.img,
+            name: res.data.user.name,
+            email: res.data.user.email,
+            tokenVersion: res.data.user.tokenVersion,
+          })
+        );
+        return;
+      }
+    }
     console.log("toggle");
     appDispatch(toggleAuthModal());
     appDispatch(toggleSideBar());
@@ -61,6 +77,7 @@ const Profile: React.FC<ProfileProps> = () => {
   };
 
   const syncBookmarks = async () => {
+    appDispatch(closeSideBar());
     const events = await getItem("smark_events", []);
     console.log({ events });
     const res = await api.post("/sync", {
@@ -70,24 +87,21 @@ const Profile: React.FC<ProfileProps> = () => {
     if (!res.data.error) {
       appDispatch(clearSmarkEvents());
       showSuccess("Synced successfully");
-      appDispatch(toggleSideBar());
       return;
     }
-    appDispatch(toggleSideBar());
     showError("Couldn't sync");
   };
 
   const fetchHandler = async () => {
+    appDispatch(closeSideBar());
     const res = await api.get("/bookmarks");
     console.log(res);
     if (res.data.bookmarks) {
       const bm = await processEvents(res.data.bookmarks);
       appDispatch(setBookmarks(bm));
       showSuccess("Fetched successfully");
-      appDispatch(toggleSideBar());
       return;
     }
-    appDispatch(toggleSideBar());
     showError("Couldn't fetch");
   };
 

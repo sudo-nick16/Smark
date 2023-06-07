@@ -103,6 +103,10 @@ func SyncBookmarks(userRepo *repository.UserRepo, bookmarksRepo *repository.Book
 							return nil, err
 						}
 						data.ListId = lst.Id
+                        bm, err := bookmarksRepo.GetBookmarkByUrl(data.Url, data.ListTitle, userId)
+                        if bm != nil {
+                            break;
+                        }
 						_, err = bookmarksRepo.CreateBookmark(&data)
 						if err != nil {
 							return nil, err

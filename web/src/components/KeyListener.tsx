@@ -8,7 +8,6 @@ const KeyListener: React.FC<KeyListenerProps> = ({ searchRef }) => {
 
     useEffect(() => {
         const cmdListener = (e: KeyboardEvent) => {
-            console.log("key pressed: ", e.key);
             switch (e.key) {
                 case "/": {
                     searchRef.current?.focus();

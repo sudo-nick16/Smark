@@ -68,7 +68,6 @@ const Input: React.FC<InputProps> = ({ searchRef, className = "" }) => {
           break;
         }
         case "cl": {
-          console.log("Adding the list");
           if (inputInfo.currentValue.trim().toLowerCase() === "home") {
             break;
           }
