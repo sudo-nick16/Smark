@@ -12,8 +12,8 @@ export const Store = createContext<{
     setState: () => null,
 });
 
-export const StoreProvider = () => {
+export const StoreProvider = ({children}: {children: React.ReactNode}) => {
     const [state, setState] = useState(initialState);
 
-    return <Store.Provider value={{ state, setState }}></Store.Provider>;
+    return <Store.Provider value={{ state, setState }}>{children}</Store.Provider>;
 };

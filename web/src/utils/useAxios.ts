@@ -1,10 +1,8 @@
 import axios from "axios";
 import { SERVER_URL } from "../constants";
 import jwt_decode from "jwt-decode";
-import { useSelector } from "react-redux";
 import store, {
   logout,
-  RootState,
   setAccessToken,
   useAppDispatch,
 } from "../store/index";
@@ -20,7 +18,7 @@ const useAxios = () => {
       "Content-Type": "application/json",
       Authorization: `JWT ${authState.accessToken}`,
     },
-    validateStatus: (status) => {
+    validateStatus: () => {
       // don't want axios throwin error on 4xx and 5xx #sorry axios
       return true;
     },
@@ -86,13 +84,6 @@ const useAxios = () => {
   myAxios.interceptors.request.use(
     async (request) => {
       const authState = store.getState().auth;
-      console.log(
-        "authstate inside axios",
-        authState,
-        request.headers.Authorization,
-        isValid(request.headers.Authorization as string)
-      );
-
       if (isValid(request.headers.Authorization as string)) {
         const expired = await isExpired(
           request.headers.Authorization as string
@@ -114,14 +105,12 @@ const useAxios = () => {
         return request;
       }
 
-      console.log("fetching token");
       const token = await refreshToken();
       request.headers["Authorization"] = `JWT ${token}`;
       appDispatch(setAccessToken(token));
       return request;
     },
     async (error) => {
-      console.log("axios error req", error);
       return Promise.reject(error);
     }
   );
@@ -129,15 +118,12 @@ const useAxios = () => {
   myAxios.interceptors.response.use(
     async (response) => {
       if (response.data.accessToken) {
-        console.log("setting access token");
         appDispatch(setAccessToken(response.data.accessToken));
       }
       return response;
     },
     async (error) => {
-      console.log("axios error", error, error.response.data.error);
       if (error.response.data.authFailed) {
-        console.log("logging out because auth failed");
         appDispatch(logout());
       }
       return Promise.reject(error);

@@ -128,11 +128,14 @@ function App() {
       }
       return list;
     });
-    await setItem("bookmarks", updatedBookmarks);
+    await setItem("bookmark_mutex", true);
     await setItem("smark_events", [...smarkEvents, addBookmarkEvent]);
-    setBookmarks(updatedBookmarks);
+    await setItem("bookmarks", updatedBookmarks);
     setSmarkEvents([...smarkEvents, addBookmarkEvent]);
+    setBookmarks(updatedBookmarks);
     showSuccess("bookmark added.");
+    await syncHandler();
+    await setItem("bookmark_mutex", false);
   };
 
   useEffect(() => {

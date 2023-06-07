@@ -1,11 +1,11 @@
 {
     "name": "Smark",
-    "description": "best bookmark management tool",
+    "description": "A bookmark manager for chrome",
     "version": "0.1",
     "manifest_version": 3,
     "commands": {
         "add-bookmark": {
-            "suggested_key": "Alt+Shift+S",
+            "suggested_key": "Alt+U",
             "description": "Add current tab to smark."
         }
     },
@@ -15,22 +15,18 @@
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjxPMVJ7O3sNgPYspQ/WZHTgj1WHmNkK+JSjjZaf9TiOHQ3hVqklBuZTzn3bKsswkv3+25em77XBJ2OKEuJU6b9NsOIf4sDWq7ZJ39zLgKWI/6X3WwhhvYsZqUDs+fJIQ6IK8odN/LbumRkyabevN3P4BUjlsgy22zFkunjvBAiq/6j2QeQBNMKBp0AtPJ7OQ9yzUvCQBioCDxDtYdT/zZLi4p6JCT1klHxWO+O/9zXns/P4DOkxnW8STVpPPjEE1IFWUScYYGw63gu1sX9pcmKKWaycu31BJWJTb6iVuX0j8tctic9pVK0Td3B12Lvv0Iao5P000CPPhKfchSaywiQIDAQAB",
     "oauth2": {
         "client_id": "980834304638-5ipdf6d20r77kosjjb1l8gj18hgr62c3.apps.googleusercontent.com",
-        "scopes": [
-            "email",
-            "profile",
-            "openid"
-        ]
+        "scopes": ["email", "profile", "openid"]
     },
     "icons": {
-        "16": "./smark.png",
-        "24": "./smark.png",
-        "32": "./smark.png"
+        "16": "./logo_64.png",
+        "24": "./logo_128.png",
+        "32": "./logo_512.png"
     },
     "action": {
         "default_icon": {
-            "16": "./smark.png",
-            "24": "./smark.png",
-            "32": "./smark.png"
+            "16": "./logo_64.png",
+            "24": "./logo_128.png",
+            "32": "./logo_512.png"
         },
         "default_title": "Smark",
         "default_popup": "./popup/index.html"
@@ -42,13 +38,9 @@
     "host_permissions": [],
     "permissions": [
         "storage",
-        "cookies",
         "unlimitedStorage",
         "tabs",
         "identity",
-        "bookmarks",
-        "clipboardRead",
-        "clipboardWrite",
         "contextMenus"
     ],
     "content_security_policy": {
