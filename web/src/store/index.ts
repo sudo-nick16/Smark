@@ -3,7 +3,6 @@ import {
   createAsyncThunk,
   createListenerMiddleware,
   createSlice,
-  isAnyOf,
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
@@ -14,7 +13,6 @@ import {
   createList,
   deleteBookmark,
   deleteList,
-  emptyBookmarkEvent,
   setBookmarks,
   setBookmarksFromStorage,
   updateBookmark,
