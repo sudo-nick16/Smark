@@ -26,6 +26,7 @@ import BookmarkEditModal from "./components/BookmarkEditModal";
 import SnackBar from "./components/SnackBar";
 import useSnackBarUtils from "./utils/useSnackBar";
 import { processEvents } from "./utils/processEvents";
+import { isChrome } from "./utils/isChrome";
 
 type AppProps = {};
 
@@ -68,7 +69,6 @@ const App: React.FC<AppProps> = () => {
             withCredentials: true,
           }
         );
-        console.log("refresh token response", response.data);
         if (!response.data?.error && response.data?.accessToken) {
           appDispatch(setAccessToken(response.data.accessToken));
           return response.data.accessToken;
@@ -107,7 +107,7 @@ const App: React.FC<AppProps> = () => {
       key: string,
       callback: (oldValue: T, newValue: T) => void
     ) => {
-      if (!chrome || typeof chrome?.storage === "undefined") {
+      if (!isChrome()) {
         return;
       }
       chrome.storage.onChanged.addListener((changes, _) => {

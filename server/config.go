@@ -31,6 +31,6 @@ func setupConfig() *types.Config {
 			}, ","),
 		},
 		OauthStateString: env.GetEnv("OAUTH_STATE_STRING", "23fspstg67ljmgtp56jmgs567"),
-        IsProduction: env.GetEnvAsBool("IS_PRODUCTION", false),
+		IsProduction:     env.GetEnvAsBool("IS_PRODUCTION", false),
 	}
 }

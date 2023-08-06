@@ -1,3 +1,3 @@
 export function isChrome(): boolean {
-    return typeof chrome.storage !== "undefined";
+  return chrome && typeof chrome.storage !== "undefined";
 }
