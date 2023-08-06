@@ -53,7 +53,6 @@ const App: React.FC<AppProps> = () => {
 
     const fetchMe = async () => {
       const res = await api.get("/me");
-      console.log("fetching user", res.data);
       if (!res.data?.error) {
         appDispatch(setUser(res.data.user));
         showSuccess(`welcome back ${res.data.user.name}`);
@@ -73,8 +72,8 @@ const App: React.FC<AppProps> = () => {
           appDispatch(setAccessToken(response.data.accessToken));
           return response.data.accessToken;
         }
-      } catch (err) {
-        console.log(err);
+      } catch (err: any) {
+        console.log(err.message);
       }
       appDispatch(logout());
       return "";
@@ -157,7 +156,6 @@ const App: React.FC<AppProps> = () => {
         return false;
       },
       effect: async (action) => {
-        console.log({ action });
         const events = await getItem<Event[]>("smark_events", []);
         if (events.length === 0) {
           return;
