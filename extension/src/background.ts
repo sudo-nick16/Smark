@@ -29,7 +29,7 @@ type BookmarkListWithChildren = {
     children: Bookmark[];
 };
 
-const BASE_SERVER_URL = "https://smark-production.up.railway.app";
+const BASE_SERVER_URL = "https://smark-prod.onrender.com";
 const MAX_RETRIES_COUNT = 5;
 const EXTENSION_URL =
     "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/";

@@ -1,14 +1,21 @@
 {
-    "name": "smark",
-    "version": "1.0.0",
-    "license": "MIT",
-    "private": true,
-    "workspaces": ["web", "extension", "server", "popup", "common"],
-    "scripts": {
-        "web": "yarn workspace @smark/web",
-        "server": "yarn workspace @smark/server",
-        "extension": "yarn workspace @smark/extension",
-        "popup": "yarn workspace @smark/popup",
-        "common": "yarn workspace @smark/common"
-    }
+  "name": "smark",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "web",
+    "extension",
+    "server",
+    "popup",
+    "common"
+  ],
+  "scripts": {
+    "web": "yarn workspace @smark/web",
+    "server": "yarn workspace @smark/server",
+    "extension": "yarn workspace @smark/extension",
+    "popup": "yarn workspace @smark/popup",
+    "common": "yarn workspace @smark/common",
+    "build": "yarn web build && yarn popup build && yarn extension build"
+  }
 }
