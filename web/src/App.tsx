@@ -4,7 +4,6 @@ import axios from "axios";
 import { SERVER_URL } from "./constants";
 import {
   logout,
-  RootState,
   setAccessToken,
   setDefaultList,
   setUser,
@@ -18,7 +17,6 @@ import {
   setBookmarks,
   setBookmarksFromStorage,
 } from "./store/asyncActions";
-import { useSelector } from "react-redux";
 import { getItem, setItem } from "./store/storageApi";
 import Input from "./components/Input";
 import MidPanel from "./components/MidPanel";
@@ -109,7 +107,7 @@ const App: React.FC<AppProps> = () => {
       key: string,
       callback: (oldValue: T, newValue: T) => void
     ) => {
-      if (typeof chrome.storage === "undefined") {
+      if (!chrome || typeof chrome?.storage === "undefined") {
         return;
       }
       chrome.storage.onChanged.addListener((changes, _) => {
