@@ -12,6 +12,7 @@ import {
 } from "../store/index";
 import useAxios from "../utils/useAxios";
 import useSnackBarUtils from "../utils/useSnackBar";
+import { isChrome } from "../utils/isChrome";
 
 type AuthModalProps = {};
 
@@ -29,7 +30,7 @@ const AuthModal: React.FC<AuthModalProps> = () => {
 
   const handleSignin = async () => {
     try {
-      if (typeof chrome.storage === "undefined") {
+      if (!isChrome()) {
         console.log("--web--");
         window.location.assign(`${SERVER_URL}/oauth/google`);
         return;
