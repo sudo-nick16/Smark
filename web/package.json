@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build --config ./prod.config.ts",
+        "build:ext": "tsc && vite build --config ./ext.config.ts",
         "watch": "vite build --watch --config ./vite.config.ts",
         "preview": "vite preview"
     },

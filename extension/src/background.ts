@@ -29,7 +29,7 @@ type BookmarkListWithChildren = {
     children: Bookmark[];
 };
 
-const BASE_SERVER_URL = "https://smark-prod.onrender.com";
+const BASE_SERVER_URL = "https://smark-server.sudonick.me";
 const MAX_RETRIES_COUNT = 5;
 const EXTENSION_URL =
     "chrome-extension://fmolcfaicblfnadllocamjmheeaabhif/options/index.html#/";
@@ -121,7 +121,7 @@ async function syncEvents() {
         });
         const data = await res.json();
         return data;
-    } catch (e) {}
+    } catch (e) { }
     return undefined;
 }
 
@@ -318,6 +318,33 @@ chrome.runtime.onInstalled.addListener(async () => {
             console.log("context menu added.");
         }
     );
+});
+
+chrome.runtime.onInstalled.addListener(async () => {
+    console.log("Thanks for using smark.");
+    console.log("you are using smark for the first time.");
+
+    await getBookmarks();
+    await getSmarkEvents();
+    await getDefaultList();
+
+    chrome.contextMenus.create(
+        {
+            title: "Add to smark",
+            id: "smark",
+            contexts: ["page"],
+        },
+        () => {
+            console.log("context menu added.");
+        }
+    );
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+    console.log("Thanks for using smark.");
+    await getBookmarks();
+    await getSmarkEvents();
+    await getDefaultList();
 });
 
 async function addBookmark(bookmark: Bookmark) {

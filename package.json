@@ -16,6 +16,6 @@
     "extension": "yarn workspace @smark/extension",
     "popup": "yarn workspace @smark/popup",
     "common": "yarn workspace @smark/common",
-    "build": "yarn web build && yarn popup build && yarn extension build"
+    "build": "yarn web build:ext && yarn popup build && yarn extension build"
   }
 }
